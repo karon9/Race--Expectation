@@ -1,0 +1,12 @@
+import pandas as pd
+import os
+
+
+def test(horse_data: pd.DataFrame, race_data: pd.DataFrame):
+    return None
+
+
+if __name__ == '__main__':
+    horse_data = pd.read_csv(os.path.join('csv', 'cleaned_horse_data.csv'), low_memory=False)
+    query_dataset = pd.DataFrame(horse_data.groupby('race_id')['horse_number'].count()).reset_index(drop=True)
+    query_dataset.to_csv(os.path.join(os.getcwd(), 'csv', 'query_data.csv'),index=False)

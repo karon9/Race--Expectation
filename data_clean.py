@@ -10,31 +10,23 @@ import pandas as pd
 # 最大表示列数の指定（ここでは50列を指定）
 pd.set_option('display.max_columns', 50)
 
-
-
 race_df = pd.read_csv("./csv/race-2008.csv", sep=",")
 horse_df = pd.read_csv("./csv/horse-2008.csv", sep=",")
-for year in range(2009, 2020):
+for year in range(2009, 2022):
     race_tmp_df = pd.read_csv("./csv/race-" + str(year) + ".csv", sep=",")
     horse_tmp_df = pd.read_csv("./csv/horse-" + str(year) + ".csv", sep=",")
     race_df = pd.concat([race_df, race_tmp_df], axis=0)
     horse_df = pd.concat([horse_df, horse_tmp_df], axis=0)
 
-# ## 元データの確認
-
-
-
 # race_id単位で重複したデータが存在しないか確認
-print(len(race_df) == len(race_df['race_id'].unique()))
+if not len(race_df) == len(race_df['race_id'].unique()):
+    race_df = race_df.drop_duplicates()
+
 print(race_df.shape)
 race_df.tail(2)
 
-
-
 # 出走馬数の確認
 race_df["total_horse_number"].value_counts()
-
-
 
 print(horse_df.shape)
 horse_df.head(2)
@@ -42,12 +34,10 @@ horse_df.head(2)
 # ## raceデータの整形
 
 
-
 race_df.head(1)
 
 # ### race_id
 # そのままでOK
-
 
 
 # 一応確認
@@ -57,28 +47,19 @@ race_df["race_id"].dtypes
 # 余分な空白とRを取り除く
 
 
-
 race_df["race_round"].dtypes
 
-
 race_df['race_round'].unique()
-
-
 
 race_df['race_round'] = race_df['race_round'].str.strip('R \n')
 
-
-
 race_df['race_round'].unique()
-
-
 
 race_df['race_round'] = race_df['race_round'].astype(int)
 race_df["race_round"].dtypes
 
 # ### race_title
 # いらないので削除
-
 
 
 # もともとのカラムは不要なので削除
@@ -94,48 +75,37 @@ race_df.drop(['race_title'], axis=1, inplace=True)
 # - 距離は？
 
 
-
 race_df["race_course"].unique()
-
-
 
 # 正規表現で取得
 
 # 障害か、地面のタイプは何か、左か、右か、直線か、
-obstacle = race_df["race_course"].str.extract('(障)', expand=True)
+# obstacle = race_df["race_course"].str.extract('(障)', expand=True)
 ground_type = race_df["race_course"].str.extract('(ダ|芝)', expand=True)
 is_left_right_straight = race_df["race_course"].str.extract('(左|右|直線)', expand=True)
 distance = race_df["race_course"].str.extract('(\d+)m', expand=True)
 
-obstacle.columns = {"is_obstacle"}
+# obstacle.columns = {"is_obstacle"}
 ground_type.columns = {"ground_type"}
 is_left_right_straight.columns = {"is_left_right_straight"}
 distance.columns = {"distance"}
 
-race_df = pd.concat([race_df, obstacle], axis=1)
+# race_df = pd.concat([race_df, obstacle], axis=1)
 race_df = pd.concat([race_df, ground_type], axis=1)
 race_df = pd.concat([race_df, is_left_right_straight], axis=1)
 race_df = pd.concat([race_df, distance], axis=1)
 
-
-
 # 'is_obstacle' 列の '障芝' を1に置き換え、Nanに0埋め
-race_df['is_obstacle'] = race_df['is_obstacle'].replace('障', 1)
-race_df.fillna(value={'is_obstacle': 0}, inplace=True)
+# race_df['is_obstacle'] = race_df['is_obstacle'].replace('障', 1)
+# race_df.fillna(value={'is_obstacle': 0}, inplace=True)
 
-
-
-print("is_obstacle:", race_df["is_obstacle"].unique())
+# print("is_obstacle:", race_df["is_obstacle"].unique())
 print("ground_type:", race_df["ground_type"].unique())
 print("is_left_right_straight:", race_df["is_left_right_straight"].unique())
 print("distance isnull sum:", race_df["distance"].isnull().sum())
 
-
-
 # もともとのカラムは不要なので削除
 race_df.drop(['race_course'], axis=1, inplace=True)
-
-
 
 race_df["distance"] = race_df["distance"].astype(int)
 
@@ -147,18 +117,11 @@ race_df["distance"] = race_df["distance"].astype(int)
 # また、少雨よりも雨が強いはず、小雪よりも雪が強いはず。これらの単純な雨量は別のデータを取ってこないと分からないが、大小関係は情報として入れられるはず。
 
 
-
 race_df["weather"].unique()
-
-
 
 race_df['weather'] = race_df['weather'].str.strip('天候 :')
 
-
-
 race_df["weather"].unique()
-
-
 
 weather_rain = race_df["weather"].str.extract('(小雨|雨)', expand=True)
 weather_snow = race_df["weather"].str.extract('(小雪|雪)', expand=True)
@@ -174,52 +137,37 @@ race_df.fillna(value={'weather_snow': 0}, inplace=True)
 race_df['weather_snow'] = race_df['weather_snow'].replace('小雪', 1)
 race_df['weather_snow'] = race_df['weather_snow'].replace('雪', 2)
 
-
-
 print("weather_rain:", race_df["weather_rain"].value_counts())
 print("weather_snow:", race_df["weather_snow"].value_counts())
 
-
+# 元々のweatherのカラムは削除
+race_df.drop(['weather'], axis=1, inplace=True)
 
 # ### ground_status
 # 芝かダートかは既に別カラムにあるので、状態を見る。
 # 大小関係があるので数値として。
 
 
-
 race_df["ground_status"].unique()
 
-
-
-race_df['ground_status'] = race_df['ground_status'].replace('.*(稍重).*', 4, regex=True)
-race_df['ground_status'] = race_df['ground_status'].replace('.*(重).*', 3, regex=True)
-race_df['ground_status'] = race_df['ground_status'].replace('.*(不良).*', 2, regex=True)
 race_df['ground_status'] = race_df['ground_status'].replace('.*(良).*', 1, regex=True)
-
-
+race_df['ground_status'] = race_df['ground_status'].replace('.*(稍重).*', 2, regex=True)
+race_df['ground_status'] = race_df['ground_status'].replace('.*(重).*', 3, regex=True)
+race_df['ground_status'] = race_df['ground_status'].replace('.*(不良).*', 4, regex=True)
 
 print("ground_status:", race_df["ground_status"].value_counts())
 
 # ### time と dateをあわせてdatetimeに
 
 
-
 race_df["time"] = race_df["time"].str.replace('発走 : (\d\d):(\d\d)(.|\n)*', r'\1時\2分')
-
-
 
 race_df["date"] = race_df["date"] + race_df["time"]
 
-
-
 race_df["date"] = pd.to_datetime(race_df['date'], format='%Y年%m月%d日%H時%M分')
-
-
 
 # もともとのtimeは不要なので削除
 race_df.drop(['time'], axis=1, inplace=True)
-
-
 
 print(race_df["date"].dtype)
 print("date isnull sum:", race_df["date"].isnull().sum())
@@ -228,24 +176,24 @@ print("date isnull sum:", race_df["date"].isnull().sum())
 # 例:1回小倉3日目 の中から小倉を取り出す
 
 
-
 race_df["where_racecourse"] = race_df["where_racecourse"].str.replace('\d*回(..)\d*日目', r'\1')
-
-
 
 # 確認
 race_df["where_racecourse"].unique()
 
 # ###  馬の数や順位
+# 枠であるframeは取り除く
 # - total_horse_number                 int64
 # - frame_number_first                 int64
+race_df.drop(['frame_number_first'], axis=1, inplace=True)
 # - horse_number_first                 int64
 # - frame_number_second                int64
+race_df.drop(['frame_number_second'], axis=1, inplace=True)
 # - horse_number_second                int64
 # - frame_number_third                 int64
+race_df.drop(['frame_number_third'], axis=1, inplace=True)
 # - horse_number_third                 int64
-# 
-# これらはそのままでOK
+#
 
 # ### オッズから余分な「,」を除く
 # - tansyo                            object
@@ -254,18 +202,6 @@ race_df["where_racecourse"].unique()
 # - hukuren_third                     object
 # - renhuku3                          object
 # - rentan3                           object
-# 
-# 数値と文字列が混在しているので面倒
-# ```
-# race_df['tansyo'] = race_df['tansyo'].str.strip(',')
-# ```
-# などとしてもだめ
-
-# In[35]:
-
-
-race_df.columns
-
 
 
 race_df['tansyo'] = race_df['tansyo'].apply(lambda x: int(x.replace(",", "")) if type(x) is str else int(x))
@@ -284,11 +220,27 @@ race_df['umatan'] = race_df['umatan'].apply(lambda x: int(x.replace(",", "")) if
 race_df['renhuku3'] = race_df['renhuku3'].apply(lambda x: int(x.replace(",", "")) if type(x) is str else int(x))
 race_df['rentan3'] = race_df['rentan3'].apply(lambda x: int(x.replace(",", "")) if type(x) is str else int(x))
 
+# ### 馬場
+# baba-indexはそのまま
+# baba-commentは削除
+race_df.drop(['baba-comment'], axis=1, inplace=True)
 
+# ### コーナー通過順位
+# 使えそうだが、面倒なので削除
+for i in range(1, 5):
+    race_df.drop([f'{i}-coner'], axis=1, inplace=True)
 
-race_df[race_df['race_id'] == 200808010709]
+# ###  ラップタイム
+# 先頭馬のラップタイムのため、スローかハイペースかの指標作成に使える。またはもっと細かな分析か。クラスタ分類
+pd.concat([race_df['race_id'], race_df['rap-time']], axis=1).to_csv('csv/reference/rap-time.csv', index=False)
+race_df.drop(['rap-time'], axis=1, inplace=True)
+# 理想は各馬のラップタイム
 
+# ペースタイムはいらない
+race_df.drop(['pace-time'], axis=1, inplace=True)
 
+# analyasis-comment
+race_df.drop(['analyasis-comment'], axis=1, inplace=True)
 
 # 確認
 race_df['race_id'] = race_df['race_id'].astype(str)
@@ -300,11 +252,10 @@ race_df.head(1)
 # ### race dataの保存
 
 
-
-race_df.to_csv("csv/cleaned_race_data.csv", index=False)
+race_df.to_csv("csv/cleaned_race_data.csv", encoding='utf_8_sig',
+               index=False)
 
 # ## horse data の整形
-
 
 
 print(horse_df.shape)
@@ -317,10 +268,6 @@ horse_df['rider_id'] = horse_df['rider_id'].astype(str)
 
 horse_df.head(2)
 
-
-
-
-
 # 何かとデータ分析で便利なので、レース日時情報をmerge
 race_tmp_df = race_df[["race_id", "date"]]
 horse_df = pd.merge(horse_df, race_tmp_df, on='race_id')
@@ -329,12 +276,17 @@ horse_df.head()
 # ### 使わなさそうな情報を削除
 # - time_value, tame_time(プレミアム会員向けの情報)
 # - goal_time_dif(自分で作成する)
+# - frame_number(枠順)
+# - half_way_rank(通過) 使えそうだが、面倒なので削除
+# - stable_comment(厩舎コメント)　面倒なので取得してない
 
 
-
-horse_df.drop(['time_value'], axis=1, inplace=True)
+# horse_df.drop(['time_value'], axis=1, inplace=True)
 horse_df.drop(['goal_time_dif'], axis=1, inplace=True)
 horse_df.drop(['tame_time'], axis=1, inplace=True)
+horse_df.drop(['frame_number'], axis=1, inplace=True)
+# horse_df.drop(['half_way_rank'], axis=1, inplace=True)
+horse_df.drop(['stable_comment'], axis=1, inplace=True)
 
 # ### race_id
 # そのままでOK
@@ -351,17 +303,15 @@ horse_df.drop(['tame_time'], axis=1, inplace=True)
 # - 失は順位が全く当てにならないので情報を削除
 # - 中は最後まで到達していないが参加はしている。ひとまず20位にしておく。goal_timeが無いので、大きめに取る必要がある。
 # - 12(再)は12で最後の模様。そのまま12にする
+# - 変更したいがとりあえずこのまま
 
 
-
-# 確認
-horse_df[horse_df['rank'] == '中'].sort_values('date').head(2)
-horse_df[horse_df['rank'] == '取'].sort_values('date').head(2)
-horse_df[horse_df['rank'] == '除'].sort_values('date').head(2)
-horse_df[horse_df['rank'] == '16(降)'].sort_values('date').head(2)
-horse_df[horse_df['rank'] == '12(再)'].sort_values('date').head(2)
-
-
+# # 確認
+# horse_df[horse_df['rank'] == '中'].sort_values('date').head(2)
+# horse_df[horse_df['rank'] == '取'].sort_values('date').head(2)
+# horse_df[horse_df['rank'] == '除'].sort_values('date').head(2)
+# horse_df[horse_df['rank'] == '16(降)'].sort_values('date').head(2)
+# horse_df[horse_df['rank'] == '12(再)'].sort_values('date').head(2)
 
 # 降格を別へ
 is_down = horse_df["rank"].str.extract('(\(降\))', expand=True)
@@ -375,8 +325,6 @@ horse_df['is_down'] = horse_df['is_down'].replace('(降)', 1)
 horse_df['rank'] = horse_df['rank'].apply(lambda x: x.replace("(降)", ""))
 horse_df['rank'] = horse_df['rank'].apply(lambda x: x.replace("(再)", ""))
 
-
-
 """- 取・除はそもそも参加していないので削除
 - 失は順位が全く当てにならないので情報を削除
 - 中は最後まで到達していないが参加はしている。ひとまず20位にしておく"""
@@ -384,18 +332,16 @@ horse_df['rank'] = horse_df['rank'].apply(lambda x: x.replace("(再)", ""))
 horse_df = horse_df[(horse_df['rank'] != "取") & (horse_df['rank'] != "除") & (horse_df['rank'] != "失")]
 horse_df['rank'] = pd.DataFrame(horse_df['rank'].mask(horse_df['rank'] == "中", 20))
 
-
-
 # 確認
 horse_df["rank"].value_counts()
+
+# ### 枠順を削除
+
 
 # ### 姓と年齢をsplit
 
 
-
 horse_df['sex_and_age'].unique()
-
-
 
 # 性別を別へ
 
@@ -411,8 +357,6 @@ is_osu = horse_df["sex_and_age"].str.extract('(牡)', expand=True)
 is_osu.columns = {"is_osu"}
 horse_df = pd.concat([horse_df, is_osu], axis=1)
 
-
-
 horse_df.fillna(value={'is_osu': 0}, inplace=True)
 horse_df['is_osu'] = horse_df['is_osu'].replace('牡', 1)
 horse_df.fillna(value={'is_mesu': 0}, inplace=True)
@@ -423,52 +367,37 @@ horse_df['is_senba'] = horse_df['is_senba'].replace('セ', 1)
 horse_df['sex_and_age'] = horse_df['sex_and_age'].str.strip("牝牡セ")
 horse_df['sex_and_age'] = horse_df['sex_and_age'].astype(int)
 
-
-
 horse_df = horse_df.rename(columns={'sex_and_age': 'age'})
 
 # ## goal_timeをtimedelta型にしてから秒に(last_timeも)
-
 
 
 # nullになるのは、レースで「中」になった馬
 print(horse_df['goal_time'].isnull().sum())
 print(horse_df['last_time'].isnull().sum())
 
-
-
 horse_df['goal_time'] = pd.to_datetime(horse_df['goal_time'], format='%M:%S.%f') - pd.to_datetime('00:00.0',
                                                                                                   format='%M:%S.%f')
 horse_df['goal_time'] = horse_df['goal_time'].dt.total_seconds()
 
-
-
 # 欠損値を最大値で埋める
 horse_df.fillna(value={'goal_time': horse_df['goal_time'].max()}, inplace=True)
 horse_df.fillna(value={'last_time': horse_df['last_time'].max()}, inplace=True)
-
-
 
 horse_df.dtypes
 
 # ### goal_timeとレース距離から、平均速度を求める
 
 
-
 # レース距離情報をmerge
 race_tmp_df = race_df[["race_id", "distance"]]
 horse_df = pd.merge(horse_df, race_tmp_df, on='race_id')
 
-
-
 horse_df["distance"] = horse_df["distance"].astype(int)
 horse_df["avg_velocity"] = horse_df["distance"] / horse_df["goal_time"]
 
-
-
 # ### half_way_rank
 # splitして平均値を保持する（レースによってまちまちなので）
-
 
 
 from statistics import mean
@@ -476,19 +405,14 @@ from statistics import mean
 horse_df["half_way_rank"] = horse_df["half_way_rank"].apply(
     lambda x: mean([float(n) for n in (x.split("-"))]) if type(x) is str else float(x))
 
-
-
 horse_df[horse_df["rank"] == 20] = horse_df[horse_df["rank"] == 20].fillna({'half_way_rank': 20})
 horse_df["half_way_rank"] = horse_df["half_way_rank"].fillna(horse_df['half_way_rank'].mean())
 horse_df["half_way_rank"].isnull().sum()
 
-
-
 horse_df["half_way_rank"] = horse_df["half_way_rank"].astype(float)
 
-# ### horse_weight と diff の分離
+### horse_weight と diff の分離
 # 「計不」は平均で穴埋め
-
 
 
 horse_weight_dif = horse_df["horse_weight"].str.extract('\(([-|+]?\d*)\)', expand=True)
@@ -498,15 +422,12 @@ horse_df = pd.concat([horse_df, horse_weight_dif], axis=1)
 
 horse_df['horse_weight'] = horse_df['horse_weight'].replace('\(([-|+]?\d*)\)', '', regex=True)
 
-
-
 horse_df['horse_weight'] = horse_df['horse_weight'].replace('計不', np.nan)
 horse_df['horse_weight'] = horse_df['horse_weight'].astype(float)
 horse_df['horse_weight_dif'] = horse_df['horse_weight_dif'].astype(float)
 
-
-
 # 計不 の horse_idを探し、馬ごとの平均値で穴埋め
+# 直近の馬体重で埋めた方が良い
 no_records = horse_df[horse_df['horse_weight'].isnull()]['horse_id']
 for no_record_id in no_records:
     horse_df.loc[(horse_df['horse_id'] == no_record_id) & (horse_df['horse_weight'].isnull()), 'horse_weight'] = \
@@ -514,11 +435,9 @@ for no_record_id in no_records:
     horse_df.loc[
         (horse_df['horse_id'] == no_record_id) & (horse_df['horse_weight_dif'].isnull()), 'horse_weight_dif'] = 0
 
-
 horse_df.dtypes
 
 # ### burden_weight, horse_weight の比率を追加
-
 
 
 horse_df['burden_weight_rate'] = horse_df['burden_weight'] / horse_df['horse_weight']
@@ -527,14 +446,9 @@ horse_df['burden_weight_rate'] = horse_df['burden_weight'] / horse_df['horse_wei
 # とりあえず放置するが、外れ値の扱いを考えたほうが良さそう。
 
 
-
 horse_df.plot(kind='hist', y='last_time', bins=50, figsize=(16, 4), alpha=0.5)
 
-
-
 horse_df[horse_df['last_time'] < 20]['race_id'].unique()
-
-
 
 race_df[(race_df['race_id'] == '200808010804') | (race_df['race_id'] == '200806010208') | (
         race_df['race_id'] == '200806010304')]
@@ -542,19 +456,15 @@ race_df[(race_df['race_id'] == '200808010804') | (race_df['race_id'] == '2008060
 # ### odds
 
 
-
 horse_df['odds'] = horse_df['odds'].astype(float)
 
-
+# ### remarks
+# できたら、カテゴリ分類やターゲットしたい
 
 # ### horse dataの保存
-
 
 
 print(horse_df.dtypes)
 horse_df.head(3)
 
-
-
-horse_df.to_csv("csv/cleaned_horse_data.csv", index=False)
-
+horse_df.to_csv("csv/cleaned_horse_data.csv", encoding='utf_8_sig', index=False)
