@@ -12,7 +12,7 @@ pd.set_option('display.max_columns', 50)
 
 race_df = pd.read_csv("./csv/race-2008.csv", sep=",")
 horse_df = pd.read_csv("./csv/horse-2008.csv", sep=",")
-for year in range(2009, 2022):
+for year in range(2009, 2009):
     race_tmp_df = pd.read_csv("./csv/race-" + str(year) + ".csv", sep=",")
     horse_tmp_df = pd.read_csv("./csv/horse-" + str(year) + ".csv", sep=",")
     race_df = pd.concat([race_df, race_tmp_df], axis=0)
@@ -252,7 +252,7 @@ race_df.head(1)
 # ### race dataの保存
 
 
-race_df.to_csv("csv/cleaned_race_data.csv", encoding='utf_8_sig',
+race_df.to_csv("csv/test_cleaned_race_data.csv", encoding='utf_8_sig',
                index=False)
 
 # ## horse data の整形
@@ -467,4 +467,4 @@ horse_df['odds'] = horse_df['odds'].astype(float)
 print(horse_df.dtypes)
 horse_df.head(3)
 
-horse_df.to_csv("csv/cleaned_horse_data.csv", encoding='utf_8_sig', index=False)
+horse_df.to_csv("csv/test_cleaned_horse_data.csv", encoding='utf_8_sig', index=False)
