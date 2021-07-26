@@ -1,7 +1,8 @@
 import pandas as pd
 import os
+from pathlib import Path
 
-query_data = pd.read_csv(os.path.join(os.getcwd(), 'test_csv', 'test_query_data.csv'))
+query_data = pd.read_csv(os.path.join(Path(os.getcwd()).parent, 'test_csv', 'test_query_data.csv'))
 split_number = int(len(query_data) / 8)
 train_query_data = query_data.iloc[: split_number * 4]
 val_query_data = query_data.iloc[split_number * 4:split_number * 6]

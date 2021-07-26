@@ -1,6 +1,12 @@
 import lightgbm as lgb
 import pandas as pd
 import os
+import shap
+import matplotlib.pylab as plt
+from pathlib import Path
+
+fig = plt.figure()
+fig.subplots_adjust(left=0.25)
 from split_data import split_data
 from drop_dataset import race_id_drop
 from modify_data import category_columns
@@ -37,7 +43,7 @@ def learn(Train_data, Val_data, Train_target, Val_target, Train_query, Val_query
 
 if __name__ == '__main__':
     # race_idにsortする。
-    data = pd.read_csv(os.path.join(os.getcwd(), 'test_csv', 'test_data.csv')).sort_values(['race_id', 'rank'])
+    data = pd.read_csv(os.path.join(Path(os.getcwd()).parent, 'test_csv', 'test_data.csv')).sort_values(['race_id', 'rank'])
     target_data = pd.Series(int(1.0 / i * 10) if i < 4 else 0 for i in data["rank"])  # 1着は10、2着は5、3着は3、4着以降は0
     data = data.drop('rank', axis=1)
     train_data, val_data, test_data, train_target, val_target, test_target, train_query, val_query, test_query = split_data(
@@ -56,10 +62,10 @@ if __name__ == '__main__':
     pred = model.predict(test_data, num_iteration=model.best_iteration)
 
     result = pd.DataFrame({'予想': pred, '実際': test_target})
-    result.to_csv(os.path.join(os.getcwd(), 'test_csv', 'result.csv'), encoding='utf_8_sig', index=False)
+    result.to_csv(os.path.join(Path(os.getcwd()).parent, 'test_csv', 'result.csv'), encoding='utf_8_sig', index=False)
 
     # shapを使用
-    # explainer = shap.TreeExplainer(model, data=train_data)
-    # tr_x_shap_values = explainer.shap_values(train_data)
-    # shap.summary_plot(shap_values=tr_x_shap_values, features=train_data, feature_names=train_data.columns)
+    explainer = shap.TreeExplainer(model)
+    shap_values = explainer.shap_values(train_data)
+    shap.summary_plot(shap_values=shap_values, features=train_data, feature_names=train_data.columns, plot_type='bar')
     print(result)

@@ -1,13 +1,15 @@
 import pandas
 import pandas as pd
 import os
+from pathlib import Path
 
 horse_drop_columns = ['goal_time', 'half_way_rank', 'time_value', 'last_time', 'remarks', 'odds', 'distance', 'popular',
                       'horse_weight', 'tamer_id', 'owner_id', 'short_comment', 'date', 'avg_velocity',
-                      'burden_weight_rate', ]
+                      'burden_weight_rate', 'is_senba', 'is_down', 'rider_id']
 
 race_drop_columns = ['race_round', 'ground_status', 'date', 'horse_number_first',
-                     'horse_number_second', 'horse_number_third', 'tansyo', 'hukusyo_first', 'hukusyo_second',
+                     'horse_number_second', 'horse_number_third', 'weather_rain', 'weather_snow', 'tansyo',
+                     'hukusyo_first', 'hukusyo_second',
                      'hukusyo_third', 'wakuren', 'umaren', 'wide_1_2', 'wide_1_3', 'wide_2_3', 'umatan', 'renhuku3',
                      'rentan3']
 
@@ -18,12 +20,14 @@ odds = ['tansyo', 'hukusyo_first', 'hukusyo_second',
 
 def drop_horse_data(df: pandas.DataFrame):
     df = df.drop(horse_drop_columns, axis=1)
-    df.to_csv(os.path.join(os.getcwd(), 'test_csv', 'test_horse_data.csv'), index=False)
+    df.to_csv(os.path.join(Path(os.getcwd()).parent, 'test_csv', 'test_horse_data.csv'), index=False)
+    return df
 
 
 def drop_race_data(df: pandas.DataFrame):
     df = df.drop(race_drop_columns, axis=1)
-    df.to_csv(os.path.join(os.getcwd(), 'test_csv', 'test_race_data.csv'), index=False)
+    df.to_csv(os.path.join(Path(os.getcwd()).parent, 'test_csv', 'test_race_data.csv'), index=False)
+    return df
 
 
 def race_id_drop(df):
