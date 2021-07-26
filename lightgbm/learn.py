@@ -1,8 +1,7 @@
 import lightgbm as lgb
 import pandas as pd
 import os
-import shap
-from race_html.split_data import split_data
+from split_data import split_data
 from drop_dataset import race_id_drop
 from modify_data import category_columns
 
