@@ -26,6 +26,12 @@ def drop_race_data(data: pandas.DataFrame):
     data.to_csv('test_race_data.csv')
 
 
+def unnamed_race_id_drop(data):
+    data = data.drop('Unnamed: 0', axis=1)
+    data = data.drop('race_id', axis=1)
+    return data
+
+
 if __name__ == '__main__':
     horse_data = pd.read_csv(os.path.join('csv', 'test_cleaned_horse_data.csv'))
     race_data = pd.read_csv(os.path.join('csv', 'test_cleaned_race_data.csv'))
