@@ -19,10 +19,10 @@ def learn(Train_data, Val_data, Train_target, Val_target, Train_query, Val_query
         'objective': 'lambdarank',
         'metric': 'ndcg',
         'lambdarank_truncation_level': 10,
-        'ndcg_eval_at': [1, 2, 3],
+        'ndcg_eval_at': [1],
         'learning_rate': 0.01,
         'boosting_type': 'gbdt',
-        'random_state': 777,
+        'random_state': 0,
     }
     Train_query = pd.Series(Train_query['horse_number'])
     Val_query = pd.Series(Val_query['horse_number'])
@@ -32,24 +32,29 @@ def learn(Train_data, Val_data, Train_target, Val_target, Train_query, Val_query
     model = lgb.train(
         params=lgbm_params,
         train_set=lgb_train,
-        num_boost_round=100,
+        num_boost_round=500,
         valid_sets=lgb_valid,
         valid_names=['train', 'valid'],
-        early_stopping_rounds=20,
-        verbose_eval=5
+        early_stopping_rounds=200,
+        verbose_eval=50
     )
     return model
 
 
 if __name__ == '__main__':
     # race_idにsortする。
-    data = pd.read_csv(os.path.join(Path(os.getcwd()).parent, 'test_csv', 'test_data.csv')).sort_values(['race_id', 'rank'])
+    data = pd.read_csv(os.path.join(Path(os.getcwd()).parent, 'test_csv', 'test_data.csv')).sort_values(
+        ['race_id', 'rank'])
     target_data = pd.Series(int(1.0 / i * 10) if i < 4 else 0 for i in data["rank"])  # 1着は10、2着は5、3着は3、4着以降は0
     data = data.drop('rank', axis=1)
     train_data, val_data, test_data, train_target, val_target, test_target, train_query, val_query, test_query = split_data(
         data, target_data)
+
+    # race_idをdrop
     train_data = race_id_drop(train_data)
     val_data = race_id_drop(val_data)
+    # test_dataのrace_idを後に紐づけるために保存
+    test_race_id = test_data['race_id']
     test_data = race_id_drop(test_data)
 
     # カラムをカテゴリ変数に変更
@@ -61,7 +66,8 @@ if __name__ == '__main__':
     print('__________________________')
     pred = model.predict(test_data, num_iteration=model.best_iteration)
 
-    result = pd.DataFrame({'予想': pred, '実際': test_target})
+    result = pd.DataFrame({'race_id': test_race_id.values, 'predict': pred, 'result': test_target})
+
     result.to_csv(os.path.join(Path(os.getcwd()).parent, 'test_csv', 'result.csv'), encoding='utf_8_sig', index=False)
 
     # shapを使用

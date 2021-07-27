@@ -3,29 +3,31 @@ import pandas as pd
 import os
 from pathlib import Path
 
-horse_drop_columns = ['goal_time', 'half_way_rank', 'time_value', 'last_time', 'remarks', 'odds', 'distance', 'popular',
-                      'horse_weight', 'tamer_id', 'owner_id', 'short_comment', 'date', 'avg_velocity',
-                      'burden_weight_rate', 'is_senba', 'is_down', 'rider_id']
-
-race_drop_columns = ['race_round', 'ground_status', 'date', 'horse_number_first',
-                     'horse_number_second', 'horse_number_third', 'weather_rain', 'weather_snow', 'tansyo',
-                     'hukusyo_first', 'hukusyo_second',
-                     'hukusyo_third', 'wakuren', 'umaren', 'wide_1_2', 'wide_1_3', 'wide_2_3', 'umatan', 'renhuku3',
-                     'rentan3']
+after_add_horse_columns = ['age', 'burden_weight', 'is_mesu', 'is_osu', 'horse_weight_dif']
+after_add_race_columns = ['total_horse_number', 'is_left_right_straight']
 
 odds = ['tansyo', 'hukusyo_first', 'hukusyo_second',
         'hukusyo_third', 'wakuren', 'umaren', 'wide_1_2', 'wide_1_3', 'wide_2_3', 'umatan', 'renhuku3',
         'rentan3']
 
+horse_drop_columns = ['goal_time', 'half_way_rank', 'time_value', 'last_time', 'remarks', 'odds', 'distance', 'popular',
+                      'horse_weight', 'tamer_id', 'owner_id', 'short_comment', 'date', 'avg_velocity',
+                      'burden_weight_rate', 'is_senba', 'is_down']
+
+race_drop_columns = ['race_round', 'ground_status', 'date', 'horse_number_first',
+                     'horse_number_second', 'horse_number_third', 'weather_rain', 'weather_snow'] + odds
+
 
 def drop_horse_data(df: pandas.DataFrame):
-    df = df.drop(horse_drop_columns, axis=1)
+    df = df.drop(horse_drop_columns + after_add_horse_columns, axis=1)
     df.to_csv(os.path.join(Path(os.getcwd()).parent, 'test_csv', 'test_horse_data.csv'), index=False)
     return df
 
 
 def drop_race_data(df: pandas.DataFrame):
-    df = df.drop(race_drop_columns, axis=1)
+    df_odds = pd.concat([df['race_id'], df[odds]], axis=1)
+    df_odds.to_csv(os.path.join(Path(os.getcwd()).parent, 'test_csv', 'test_odds_data.csv'), index=False)
+    df = df.drop(race_drop_columns + after_add_race_columns, axis=1)
     df.to_csv(os.path.join(Path(os.getcwd()).parent, 'test_csv', 'test_race_data.csv'), index=False)
     return df
 
