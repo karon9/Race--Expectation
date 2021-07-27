@@ -10,6 +10,7 @@ fig.subplots_adjust(left=0.25)
 from split_data import split_data
 from drop_dataset import race_id_drop
 from modify_data import category_columns
+from result_analysis import correct_answer_rate
 
 
 def learn(Train_data, Val_data, Train_target, Val_target, Train_query, Val_query):
@@ -19,7 +20,7 @@ def learn(Train_data, Val_data, Train_target, Val_target, Train_query, Val_query
         'objective': 'lambdarank',
         'metric': 'ndcg',
         'lambdarank_truncation_level': 10,
-        'ndcg_eval_at': [1],
+        'ndcg_eval_at': [1, 2, 3],
         'learning_rate': 0.01,
         'boosting_type': 'gbdt',
         'random_state': 0,
@@ -32,10 +33,9 @@ def learn(Train_data, Val_data, Train_target, Val_target, Train_query, Val_query
     model = lgb.train(
         params=lgbm_params,
         train_set=lgb_train,
-        num_boost_round=500,
+        num_boost_round=100,
         valid_sets=lgb_valid,
         valid_names=['train', 'valid'],
-        early_stopping_rounds=200,
         verbose_eval=50
     )
     return model
@@ -67,11 +67,12 @@ if __name__ == '__main__':
     pred = model.predict(test_data, num_iteration=model.best_iteration)
 
     result = pd.DataFrame({'race_id': test_race_id.values, 'predict': pred, 'result': test_target})
-
+    tansyo, hukusyo = correct_answer_rate(result, test_query)
+    print('単勝的中率 : {:.2f}%     単勝回収率 : {:.2f}%'.format(tansyo[0], tansyo[1]))
+    print('複勝的中率 : {:.2f}%     複勝回収率 : {:.2f}%'.format(hukusyo[0], hukusyo[1]))
     result.to_csv(os.path.join(Path(os.getcwd()).parent, 'test_csv', 'result.csv'), encoding='utf_8_sig', index=False)
 
     # shapを使用
     explainer = shap.TreeExplainer(model)
     shap_values = explainer.shap_values(train_data)
     shap.summary_plot(shap_values=shap_values, features=train_data, feature_names=train_data.columns, plot_type='bar')
-    print(result)

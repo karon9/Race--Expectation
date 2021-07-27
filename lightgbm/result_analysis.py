@@ -7,15 +7,11 @@ import numpy as np
 def correct_answer_rate(df, query_data):
     odds_data = pd.read_csv(os.path.join(Path(os.getcwd()).parent, 'test_csv', 'test_odds_data.csv'))
     df = pd.merge(df, odds_data, on='race_id')
-    df = df.sort_values(["race_id", "predict"], ascending=[True, False]).reset_index(drop=True)
-    first_index = 0
-    second_index = 1
-    third_index = 2
+    # resultの並び順を降順にして、同じpredictの時に悪い方になるようにした
+    df = df.sort_values(["race_id", "predict", "result"], ascending=[True, False, True]).reset_index(drop=True)
     tansyo_rate = tansyo(df, query_data)
     hukusyo_rate = hukusyo(df, query_data)
-    print(tansyo_rate)
-    print(hukusyo_rate)
-    return df
+    return tansyo_rate, hukusyo_rate
 
 
 def tansyo(df, query_df, first_index=0):

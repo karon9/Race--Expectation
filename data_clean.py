@@ -10,9 +10,9 @@ import pandas as pd
 # 最大表示列数の指定（ここでは50列を指定）
 pd.set_option('display.max_columns', 50)
 
-race_df = pd.read_csv("./csv/race-2015.csv", sep=",")
-horse_df = pd.read_csv("./csv/horse-2015.csv", sep=",")
-for year in range(2016, 2019):
+race_df = pd.read_csv("./csv/race-2017.csv", sep=",")
+horse_df = pd.read_csv("./csv/horse-2017.csv", sep=",")
+for year in range(2018, 2022):
     race_tmp_df = pd.read_csv("./csv/race-" + str(year) + ".csv", sep=",")
     horse_tmp_df = pd.read_csv("./csv/horse-" + str(year) + ".csv", sep=",")
     race_df = pd.concat([race_df, race_tmp_df], axis=0)
