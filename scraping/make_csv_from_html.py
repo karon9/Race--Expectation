@@ -3,15 +3,13 @@ race_htmlに含まれるhtmlを利用して、データを生成する
 """
 import datetime
 import pytz
+from pathlib import Path
 
 now_datetime = datetime.datetime.now(pytz.timezone('Asia/Tokyo'))
 
 from bs4 import BeautifulSoup
-import numpy as np
 import pandas as pd
 
-import time
-import re
 import os
 from os import path
 
@@ -123,8 +121,8 @@ def make_csv_from_html_by_year(year):
                         except NameError as e:
                             continue
 
-        race_df.to_csv(save_race_csv, header=True, index=False)
-        horse_df.to_csv(horse_race_csv, header=True, index=False)
+        race_df.to_csv(save_race_csv, encoding='utf_8_sig', header=True, index=False)
+        horse_df.to_csv(horse_race_csv, encoding='utf_8_sig', header=True, index=False)
 
 
 def get_rade_and_horse_data_by_html(race_id, html):
@@ -317,7 +315,8 @@ def get_rade_and_horse_data_by_html(race_id, html):
 if __name__ == '__main__':
     make_csv_from_html()
 
-    # file_name = '201805040406'
-    # with open(f"race_html/2018/10/{file_name}.html", "r") as f:
+    # file_name = '201805040411'
+    # with open(f"{Path(os.getcwd()).parent}/race_html/2018/10/{file_name}.html", "r") as f:
     #     html = f.read()
-    #     get_rade_and_horse_data_by_html(file_name, html)
+    #     race_list , horse_list_lsit = get_rade_and_horse_data_by_html(file_name, html)
+    #     print(race_list)
