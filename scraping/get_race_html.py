@@ -5,7 +5,7 @@ import datetime
 import pytz
 from pathlib import Path
 
-# now_datetime = datetime.datetime.now(pytz.timezone('Asia/Tokyo'))
+now_datetime = datetime.datetime.now(pytz.timezone('Asia/Tokyo'))
 
 import requests
 from bs4 import BeautifulSoup
@@ -16,12 +16,12 @@ from os import path
 import csv
 
 OWN_FILE_NAME = path.splitext(path.basename(__file__))[0]
-RACR_URL_DIR = os.path.join(Path(os.getcwd()).parent,"race_url")
-RACR_HTML_DIR = os.path.join(Path(os.getcwd()).parent,"race_html")
+RACR_URL_DIR = os.path.join(Path(os.getcwd()).parent, "race_url")
+RACR_HTML_DIR = os.path.join(Path(os.getcwd()).parent, "race_html")
 
 #  直近のデータを取得したいならnow_datetime.yearなどを代入
-now_year = 2020
-now_month = 6
+now_year = now_datetime.year
+now_month = now_datetime.month
 
 import logging
 
@@ -73,7 +73,7 @@ def get_race_html_by_year_and_mon(year, month, session):
 
 
 def login__netkeiba():
-    with open(os.path.join(Path(os.getcwd()).parent,"login_id.csv")) as f:
+    with open(os.path.join(Path(os.getcwd()).parent, "login_id.csv")) as f:
         reader = csv.reader(f)
         l = [row for row in reader]
         USER = str(l[0][1])

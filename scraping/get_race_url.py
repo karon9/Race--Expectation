@@ -17,7 +17,7 @@ import os
 from os import path
 
 OWN_FILE_NAME = path.splitext(path.basename(__file__))[0]
-RACR_URL_DIR = os.path.join(Path(os.getcwd()).parent,"race_url")
+RACR_URL_DIR = os.path.join(Path(os.getcwd()).parent, "race_url")
 
 import logging
 
@@ -133,5 +133,4 @@ def get_race_url_by_year_and_mon(driver, year, month):
 
 
 if __name__ == '__main__':
-
     get_race_url()

@@ -12,10 +12,11 @@ import pandas as pd
 
 import os
 from os import path
+
 OWN_FILE_NAME = path.splitext(path.basename(__file__))[0]
-RACR_URL_DIR = os.path.join(Path(os.getcwd()).parent,'race_url')
+RACR_URL_DIR = os.path.join(Path(os.getcwd()).parent, 'race_url')
 RACR_HTML_DIR = "race_html"
-CSV_DIR = os.path.join(Path(os.getcwd()).parent,'csv')
+CSV_DIR = os.path.join(Path(os.getcwd()).parent, 'csv')
 
 race_data_columns = [
     'race_id',
@@ -91,8 +92,8 @@ def make_csv_from_html():
 
 
 def make_csv_from_html_by_year(year):
-    save_race_csv = os.path.join(CSV_DIR , f"race-{str(year)}.csv")
-    horse_race_csv = os.path.join(CSV_DIR , f"horse-{str(year)}.csv")
+    save_race_csv = os.path.join(CSV_DIR, f"race-{str(year)}.csv")
+    horse_race_csv = os.path.join(CSV_DIR, f"horse-{str(year)}.csv")
     if not os.path.exists(CSV_DIR):
         os.mkdir(CSV_DIR)
     if not ((os.path.isfile(save_race_csv)) and (os.path.isfile(horse_race_csv))):  # まだcsvがなければ生成
@@ -101,7 +102,7 @@ def make_csv_from_html_by_year(year):
         total = 0
         for month in range(1, 13):
             # race_html/year/month というディレクトリが存在すればappend, なければ何もしない
-            html_dir = os.path.join(Path(os.getcwd()).parent,RACR_HTML_DIR, str(year) , str(month))
+            html_dir = os.path.join(Path(os.getcwd()).parent, RACR_HTML_DIR, str(year), str(month))
             print(f"start writing files of {year}/{month}")
             if os.path.isdir(html_dir):
                 file_list = os.listdir(html_dir)  # get all file names
