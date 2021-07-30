@@ -3,6 +3,7 @@ race_urlディレクトリに含まれるURLを利用して、htmlを取得す�
 """
 import datetime
 import pytz
+from pathlib import Path
 
 # now_datetime = datetime.datetime.now(pytz.timezone('Asia/Tokyo'))
 
@@ -15,8 +16,8 @@ from os import path
 import csv
 
 OWN_FILE_NAME = path.splitext(path.basename(__file__))[0]
-RACR_URL_DIR = "race_url"
-RACR_HTML_DIR = "race_html"
+RACR_URL_DIR = os.path.join(Path(os.getcwd()).parent,"race_url")
+RACR_HTML_DIR = os.path.join(Path(os.getcwd()).parent,"race_html")
 
 #  直近のデータを取得したいならnow_datetime.yearなどを代入
 now_year = 2020
@@ -72,7 +73,7 @@ def get_race_html_by_year_and_mon(year, month, session):
 
 
 def login__netkeiba():
-    with open("login_id.csv") as f:
+    with open(os.path.join(Path(os.getcwd()).parent,"login_id.csv")) as f:
         reader = csv.reader(f)
         l = [row for row in reader]
         USER = str(l[0][1])

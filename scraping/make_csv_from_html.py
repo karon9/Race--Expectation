@@ -12,11 +12,10 @@ import pandas as pd
 
 import os
 from os import path
-
 OWN_FILE_NAME = path.splitext(path.basename(__file__))[0]
-RACR_URL_DIR = "race_url"
+RACR_URL_DIR = os.path.join(Path(os.getcwd()).parent,'race_url')
 RACR_HTML_DIR = "race_html"
-CSV_DIR = "csv"
+CSV_DIR = os.path.join(Path(os.getcwd()).parent,'csv')
 
 race_data_columns = [
     'race_id',
@@ -28,6 +27,7 @@ race_data_columns = [
     'time',
     'date',
     'where_racecourse',
+    'race_rank',
     'total_horse_number',
     'frame_number_first',
     'horse_number_first',
@@ -91,8 +91,8 @@ def make_csv_from_html():
 
 
 def make_csv_from_html_by_year(year):
-    save_race_csv = CSV_DIR + "/race-" + str(year) + ".csv"
-    horse_race_csv = CSV_DIR + "/horse-" + str(year) + ".csv"
+    save_race_csv = os.path.join(CSV_DIR , f"race-{str(year)}.csv")
+    horse_race_csv = os.path.join(CSV_DIR , f"horse-{str(year)}.csv")
     if not os.path.exists(CSV_DIR):
         os.mkdir(CSV_DIR)
     if not ((os.path.isfile(save_race_csv)) and (os.path.isfile(horse_race_csv))):  # まだcsvがなければ生成
@@ -101,7 +101,7 @@ def make_csv_from_html_by_year(year):
         total = 0
         for month in range(1, 13):
             # race_html/year/month というディレクトリが存在すればappend, なければ何もしない
-            html_dir = RACR_HTML_DIR + "/" + str(year) + "/" + str(month)
+            html_dir = os.path.join(Path(os.getcwd()).parent,RACR_HTML_DIR, str(year) , str(month))
             print(f"start writing files of {year}/{month}")
             if os.path.isdir(html_dir):
                 file_list = os.listdir(html_dir)  # get all file names
@@ -144,6 +144,7 @@ def get_rade_and_horse_data_by_html(race_id, html):
     race_details2 = data_intro.find("p", class_="smalltxt").get_text().strip("\n").split(" ")
     race_list.append(race_details2[0])  # date
     race_list.append(race_details2[1])  # where_racecourse
+    race_list.append(race_details2[2].split()[0])  # race_rank
 
     result_rows = soup.find("table", class_="race_table_01 nk_tb_common").find_all('tr')  # レース結果
     # 上位3着の情報
@@ -315,8 +316,8 @@ def get_rade_and_horse_data_by_html(race_id, html):
 if __name__ == '__main__':
     make_csv_from_html()
 
-    # file_name = '201805040411'
-    # with open(f"{Path(os.getcwd()).parent}/race_html/2018/10/{file_name}.html", "r") as f:
+    # file_name = '201409030810'
+    # with open(f"{Path(os.getcwd()).parent}/race_html/2014/6/{file_name}.html", "r") as f:
     #     html = f.read()
     #     race_list , horse_list_lsit = get_rade_and_horse_data_by_html(file_name, html)
     #     print(race_list)
