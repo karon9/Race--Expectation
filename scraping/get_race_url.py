@@ -6,6 +6,7 @@ https://db.netkeiba.com/?pid=race_search_detail
 """
 import datetime
 import pytz
+from pathlib import Path
 
 now_datetime = datetime.datetime.now(pytz.timezone('Asia/Tokyo'))
 
@@ -16,7 +17,7 @@ import os
 from os import path
 
 OWN_FILE_NAME = path.splitext(path.basename(__file__))[0]
-RACR_URL_DIR = "race_url"
+RACR_URL_DIR = os.path.join(Path(os.getcwd()).parent,"race_url")
 
 import logging
 
