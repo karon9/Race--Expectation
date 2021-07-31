@@ -33,7 +33,7 @@ def learn(Train_data, Val_data, Train_target, Val_target, Train_query, Val_query
     model = lgb.train(
         params=lgbm_params,
         train_set=lgb_train,
-        num_boost_round=100,
+        num_boost_round=5000,
         valid_sets=lgb_valid,
         valid_names=['train', 'valid'],
         verbose_eval=50

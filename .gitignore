@@ -1,11 +1,9 @@
 *.html
 /csv/
-/model/*predicted*.csv
-/predict/*predicted*.csv
-*.gz
-.ipynb*
 *.csv
 race_html
 race_url
-logfile/
 .idea
+test_csv
+*.ipynb
+*__pycache__*

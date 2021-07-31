@@ -23,7 +23,7 @@ race_drop_columns = ['race_round', 'ground_status', 'horse_number_first',
 def drop_horse_data(df: pandas.DataFrame):
     df = df.drop(horse_drop_columns, axis=1)
     df = df.drop(after_add_horse_columns, axis=1)
-    df = df.drop(['odds', 'popular', 'remarks'], axis=1)  # 過学習を起こしてる可能性
+    df = df.drop(['odds', 'popular'], axis=1)  # 過学習を起こしてる可能性
     df.to_csv(os.path.join(Path(os.getcwd()).parent, 'csv', 'horse_data.csv'), index=False)
     return df
 
