@@ -28,11 +28,13 @@ def learn(Train_data, Val_data, Train_target, Val_target, Train_query, Val_query
         param = {
             'objective': 'lambdarank',
             'metric': 'ndcg',
-            'ndcg_eval_at': [1, 2, 3]
+            'ndcg_eval_at': [1, 2, 3],
+            'feature_pre_filter' : False,
+            'force_col_wise' : True,
         }
-        best = LGB_optuna.train(param, lgb_train, valid_sets=lgb_valid)
+        best = LGB_optuna.train(param, lgb_train, valid_sets=lgb_valid,verbose_eval=50)
         print(best.params)
-        model = lgb.train(best.params, lgb_train)
+        model = lgb.train(best.params, lgb_train,verbose_eval=50)
     else:
         # lightGBMのパラメータ設定
         lgbm_params = {

@@ -45,7 +45,7 @@ def get_race_html(session):
 
 
 def get_race_html_by_year_and_mon(year, month, session):
-    with open(os.path.join(RACR_URL_DIR, str(year) + "-" + str(month) + ".txt", "r")) as f:
+    with open(os.path.join(RACR_URL_DIR, str(year) + "-" + str(month)) + ".txt", "r") as f:
         save_dir = os.path.join(RACR_HTML_DIR, str(year), str(month))
         my_makedirs(save_dir)
         urls = f.read().splitlines()
