@@ -45,8 +45,8 @@ def get_race_html(session):
 
 
 def get_race_html_by_year_and_mon(year, month, session):
-    with open(RACR_URL_DIR + "/" + str(year) + "-" + str(month) + ".txt", "r") as f:
-        save_dir = RACR_HTML_DIR + "/" + str(year) + "/" + str(month)
+    with open(os.path.join(RACR_URL_DIR, str(year) + "-" + str(month) + ".txt", "r")) as f:
+        save_dir = os.path.join(RACR_HTML_DIR, str(year), str(month))
         my_makedirs(save_dir)
         urls = f.read().splitlines()
 
@@ -58,7 +58,7 @@ def get_race_html_by_year_and_mon(year, month, session):
             for url in urls:
                 list = url.split("/")
                 race_id = list[-2]
-                save_file_path = save_dir + "/" + race_id + '.html'
+                save_file_path = os.path.join(save_dir, race_id + '.html')
                 if not os.path.isfile(save_file_path):  # まだ取得していなければ取得
                     response = session.get(url)
                     response.encoding = response.apparent_encoding  # https://qiita.com/nittyan/items/d3f49a7699296a58605b
@@ -96,7 +96,7 @@ def login__netkeiba():
     race = session.get("https://db.netkeiba.com/race/200806010801/")
     race.encoding = race.apparent_encoding
     html = race.text
-    save_file_path = os.getcwd() + "/test.html"
+    save_file_path = os.path.join(os.getcwd(), "test.html")
     with open(save_file_path, 'w') as file:
         file.write(html)
     return session
