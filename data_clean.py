@@ -3,18 +3,22 @@
 
 # In[1]:
 
-
+import datetime
+import pytz
 import numpy as np
 import pandas as pd
+import os
+
+now_datetime = datetime.datetime.now(pytz.timezone('Asia/Tokyo'))
 
 # 最大表示列数の指定（ここでは50列を指定）
 pd.set_option('display.max_columns', 50)
 
-race_df = pd.read_csv("./csv/race-2017.csv", sep=",")
-horse_df = pd.read_csv("./csv/horse-2017.csv", sep=",")
-for year in range(2018, 2022):
-    race_tmp_df = pd.read_csv("./csv/race-" + str(year) + ".csv", sep=",")
-    horse_tmp_df = pd.read_csv("./csv/horse-" + str(year) + ".csv", sep=",")
+race_df = pd.read_csv(os.path.join("csv", "race-2008.csv"), sep=",")
+horse_df = pd.read_csv(os.path.join("csv", "horse-2008.csv"), sep=",")
+for year in range(2009, now_datetime.year + 1):
+    race_tmp_df = pd.read_csv(os.path.join("csv", "race-" + str(year) + ".csv"), sep=",")
+    horse_tmp_df = pd.read_csv(os.path.join("csv", "horse-" + str(year) + ".csv"), sep=",")
     race_df = pd.concat([race_df, race_tmp_df], axis=0)
     horse_df = pd.concat([horse_df, horse_tmp_df], axis=0)
 
@@ -30,11 +34,6 @@ race_df["total_horse_number"].value_counts()
 
 print(horse_df.shape)
 horse_df.head(2)
-
-# ## raceデータの整形
-
-
-race_df.head(1)
 
 # ### race_id
 # そのままでOK
@@ -63,6 +62,8 @@ race_df["race_round"].dtypes
 
 
 # もともとのカラムは不要なので削除
+race_title = race_df['race_title']
+# race_df = pd.concat([race_df, race_title], axis=1)
 race_df.drop(['race_title'], axis=1, inplace=True)
 
 # ### race_course
@@ -79,7 +80,7 @@ race_df["race_course"].unique()
 
 # 正規表現で取得
 
-# 障害か、地面のタイプは何か、左か、右か、直線か、
+# 地面のタイプは何か、左か、右か、直線か、
 # obstacle = race_df["race_course"].str.extract('(障)', expand=True)
 ground_type = race_df["race_course"].str.extract('(ダ|芝)', expand=True)
 is_left_right_straight = race_df["race_course"].str.extract('(左|右|直線)', expand=True)
@@ -160,17 +161,17 @@ print("ground_status:", race_df["ground_status"].value_counts())
 # ### time と dateをあわせてdatetimeに
 
 
-race_df["time"] = race_df["time"].str.replace('発走 : (\d\d):(\d\d)(.|\n)*', r'\1時\2分')
+# race_df["time"] = race_df["time"].str.replace('発走 : (\d\d):(\d\d)(.|\n)*', r'\1時\2分')
 
-race_df["date"] = race_df["date"] + race_df["time"]
+# race_df["date"] = race_df["date"] + race_df["time"]
 
-race_df["date"] = pd.to_datetime(race_df['date'], format='%Y年%m月%d日%H時%M分')
+# race_df["date"] = pd.to_datetime(race_df['date'], format='%m月%d日%H時%M分')
+
+race_df["date"] = race_df["date"].str.extract('(\d)月.', expand=True)
+race_df = race_df.rename(columns={'date': 'date_month'})
 
 # もともとのtimeは不要なので削除
 race_df.drop(['time'], axis=1, inplace=True)
-
-print(race_df["date"].dtype)
-print("date isnull sum:", race_df["date"].isnull().sum())
 
 # ### where_racecourse
 # 例:1回小倉3日目 の中から小倉を取り出す
@@ -180,6 +181,14 @@ race_df["where_racecourse"] = race_df["where_racecourse"].str.replace('\d*回(..
 
 # 確認
 race_df["where_racecourse"].unique()
+
+# ### race_rank : レースのレベル(オープンをG1などで分けるようにした。)
+race_rank = race_df['race_rank']
+for index in race_rank.index:
+    if 'オープン' in race_rank.values[index]:
+        if '(' in race_title.values[index]:
+            race_rank[index] = str(race_rank.values[index].split('オープン')[0] + \
+                                   race_title.values[index].split('(')[1].split(')')[0])
 
 # ###  馬の数や順位
 # 枠であるframeは取り除く
@@ -232,7 +241,7 @@ for i in range(1, 5):
 
 # ###  ラップタイム
 # 先頭馬のラップタイムのため、スローかハイペースかの指標作成に使える。またはもっと細かな分析か。クラスタ分類
-pd.concat([race_df['race_id'], race_df['rap-time']], axis=1).to_csv('csv/reference/rap-time.csv', index=False)
+# pd.concat([race_df['race_id'], race_df['rap-time']], axis=1).to_csv('csv/reference/rap-time.csv', index=False)
 race_df.drop(['rap-time'], axis=1, inplace=True)
 # 理想は各馬のラップタイム
 
@@ -252,7 +261,7 @@ race_df.head(1)
 # ### race dataの保存
 
 
-race_df.to_csv("test_csv/test_cleaned_race_data.csv", encoding='utf_8_sig',
+race_df.to_csv("csv/cleaned_race_data.csv", encoding='utf_8_sig',
                index=False)
 
 # ## horse data の整形
@@ -268,8 +277,8 @@ horse_df['rider_id'] = horse_df['rider_id'].astype(str)
 
 horse_df.head(2)
 
-# 何かとデータ分析で便利なので、レース日時情報をmerge
-race_tmp_df = race_df[["race_id", "date"]]
+# 何かとデータ分析で便利なので、レース月情報をmerge
+race_tmp_df = race_df[["race_id", "date_month"]]
 horse_df = pd.merge(horse_df, race_tmp_df, on='race_id')
 horse_df.head()
 
@@ -467,4 +476,4 @@ horse_df['odds'] = horse_df['odds'].astype(float)
 print(horse_df.dtypes)
 horse_df.head(3)
 
-horse_df.to_csv("test_csv/test_cleaned_horse_data.csv", encoding='utf_8_sig', index=False)
+horse_df.to_csv("csv/cleaned_horse_data.csv", encoding='utf_8_sig', index=False)

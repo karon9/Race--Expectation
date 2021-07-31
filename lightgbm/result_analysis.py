@@ -5,7 +5,7 @@ import numpy as np
 
 
 def correct_answer_rate(df, query_data):
-    odds_data = pd.read_csv(os.path.join(Path(os.getcwd()).parent, 'test_csv', 'test_odds_data.csv'))
+    odds_data = pd.read_csv(os.path.join(Path(os.getcwd()).parent, 'csv', 'odds_data.csv'))
     df = pd.merge(df, odds_data, on='race_id')
     # resultの並び順を降順にして、同じpredictの時に悪い方になるようにした
     df = df.sort_values(["race_id", "predict", "result"], ascending=[True, False, True]).reset_index(drop=True)
@@ -22,8 +22,11 @@ def tansyo(df, query_df, first_index=0):
         if df['result'][first_index] == 10:
             hit_count += 1
             dividen += df['tansyo'][first_index].astype(np.int32)
+            if df['tansyo'][first_index].astype(np.int32) > 1000:
+                print('Big Hit!! {}'.format(df['tansyo'][first_index].astype(np.int32)))
         race_count += 1
         first_index += query_num
+    print('総レース : {}'.format(race_count))
     return hit_count / race_count * 100, dividen / race_count
 
 

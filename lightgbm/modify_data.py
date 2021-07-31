@@ -5,8 +5,8 @@ import numpy as np
 
 
 def category_columns(df):
-    number_column = ['horse_number', 'burden_weight', 'horse_weight_dif', 'total_horse_number', 'baba_index',
-                     'distance']
+    number_column = ['burden_weight', 'horse_weight_dif', 'total_horse_number', 'baba_index',
+                     'distance', 'odds']
     for column in df.columns:
         if column in number_column:
             df[column] = df[column].astype(np.int32)

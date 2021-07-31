@@ -43,10 +43,10 @@ def learn(Train_data, Val_data, Train_target, Val_target, Train_query, Val_query
 
 if __name__ == '__main__':
     # race_idにsortする。
-    data = pd.read_csv(os.path.join(Path(os.getcwd()).parent, 'test_csv', 'test_data.csv')).sort_values(
+    data = pd.read_csv(os.path.join(Path(os.getcwd()).parent, 'csv', 'learn_data.csv')).sort_values(
         ['race_id', 'rank'])
     target_data = pd.Series(int(1.0 / i * 10) if i < 4 else 0 for i in data["rank"])  # 1着は10、2着は5、3着は3、4着以降は0
-    data = data.drop('rank', axis=1)
+    data = data.drop(columns='rank', axis=1)
     train_data, val_data, test_data, train_target, val_target, test_target, train_query, val_query, test_query = split_data(
         data, target_data)
 
@@ -70,9 +70,9 @@ if __name__ == '__main__':
     tansyo, hukusyo = correct_answer_rate(result, test_query)
     print('単勝的中率 : {:.2f}%     単勝回収率 : {:.2f}%'.format(tansyo[0], tansyo[1]))
     print('複勝的中率 : {:.2f}%     複勝回収率 : {:.2f}%'.format(hukusyo[0], hukusyo[1]))
-    result.to_csv(os.path.join(Path(os.getcwd()).parent, 'test_csv', 'result.csv'), encoding='utf_8_sig', index=False)
+    result.to_csv(os.path.join(Path(os.getcwd()).parent, 'csv', 'result.csv'), encoding='utf_8_sig', index=False)
 
     # shapを使用
     explainer = shap.TreeExplainer(model)
     shap_values = explainer.shap_values(train_data)
-    shap.summary_plot(shap_values=shap_values, features=train_data, feature_names=train_data.columns, plot_type='bar')
+    shap.summary_plot(shap_values=shap_values, features=train_data, feature_names=train_data.columns)
