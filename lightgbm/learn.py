@@ -1,9 +1,12 @@
+import time
+
 import lightgbm as lgb
 import pandas as pd
 import os
 import shap
 import matplotlib.pylab as plt
 from pathlib import Path
+from optuna.integration import lightgbm as LGB_optuna
 
 fig = plt.figure()
 fig.subplots_adjust(left=0.25)
@@ -13,31 +16,42 @@ from modify_data import category_columns
 from result_analysis import correct_answer_rate
 
 
-def learn(Train_data, Val_data, Train_target, Val_target, Train_query, Val_query):
-    # lightGBMのパラメータ設定
-    max_position = 20
-    lgbm_params = {
-        'objective': 'lambdarank',
-        'metric': 'ndcg',
-        'lambdarank_truncation_level': 10,
-        'ndcg_eval_at': [1, 2, 3],
-        'learning_rate': 0.01,
-        'boosting_type': 'gbdt',
-        'random_state': 0,
-    }
+def learn(Train_data, Val_data, Train_target, Val_target, Train_query, Val_query, Optuna_use=False):
     Train_query = pd.Series(Train_query['horse_number'])
     Val_query = pd.Series(Val_query['horse_number'])
     # 学習
     lgb_train = lgb.Dataset(Train_data, Train_target, group=Train_query)
     lgb_valid = lgb.Dataset(Val_data, Val_target, group=Val_query, reference=lgb_train)
-    model = lgb.train(
-        params=lgbm_params,
-        train_set=lgb_train,
-        num_boost_round=5000,
-        valid_sets=lgb_valid,
-        valid_names=['train', 'valid'],
-        verbose_eval=50
-    )
+    if Optuna_use:
+        print('use optuna !!')
+        time.sleep(1)
+        param = {
+            'objective': 'lambdarank',
+            'metric': 'ndcg',
+            'ndcg_eval_at': [1, 2, 3]
+        }
+        best = LGB_optuna.train(param, lgb_train, valid_sets=lgb_valid)
+        print(best.params)
+        model = lgb.train(best.params, lgb_train)
+    else:
+        # lightGBMのパラメータ設定
+        lgbm_params = {
+            'objective': 'lambdarank',
+            'metric': 'ndcg',
+            'lambdarank_truncation_level': 10,
+            'ndcg_eval_at': [1, 2, 3],
+            'learning_rate': 0.01,
+            'boosting_type': 'gbdt',
+            'random_state': 0,
+        }
+        model = lgb.train(
+            params=lgbm_params,
+            train_set=lgb_train,
+            num_boost_round=500,
+            valid_sets=lgb_valid,
+            valid_names=['train', 'valid'],
+            verbose_eval=50
+        )
     return model
 
 
@@ -62,7 +76,9 @@ if __name__ == '__main__':
     val_data = category_columns(val_data)
     test_data = category_columns(test_data)
 
-    model = learn(train_data, val_data, train_target, val_target, train_query, val_query)
+    Optuna_use = True
+
+    model = learn(train_data, val_data, train_target, val_target, train_query, val_query, Optuna_use)
     print('__________________________')
     pred = model.predict(test_data, num_iteration=model.best_iteration)
 
