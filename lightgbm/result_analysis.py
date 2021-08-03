@@ -22,8 +22,10 @@ def tansyo(df, query_df, first_index=0):
         if df['result'][first_index] == 10:
             hit_count += 1
             dividen += df['tansyo'][first_index].astype(np.int32)
-            if df['tansyo'][first_index].astype(np.int32) > 1000:
-                print('Big Hit!! {}'.format(df['tansyo'][first_index].astype(np.int32)))
+            if df['tansyo'][first_index].astype(np.int32) > 100000:
+                hit_count -= 1
+                race_count -= 1
+                dividen -= df['tansyo'][first_index].astype(np.int32)
         race_count += 1
         first_index += query_num
     print('総レース : {}'.format(race_count))
@@ -50,7 +52,7 @@ def hukusyo(df, query_df, first_index=0, second_index=1, third_index=2):
 
 
 if __name__ == '__main__':
-    result_df = pd.read_csv(os.path.join(Path(os.getcwd()).parent, 'test_csv', 'result.csv'))
-    test_query_data = pd.read_csv(os.path.join(Path(os.getcwd()).parent, 'test_csv', 'test_query_data.csv'))
+    result_df = pd.read_csv(os.path.join(Path(os.getcwd()).parent, 'csv', 'test_result.csv'))
+    test_query_data = pd.read_csv(os.path.join(Path(os.getcwd()).parent, 'csv', 'test_query_data.csv'))
     test_query_data = test_query_data[9978:13309]
     correct_answer_rate(result_df, test_query_data)
