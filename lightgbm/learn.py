@@ -16,7 +16,7 @@ from modify_data import category_columns
 from result_analysis import correct_answer_rate
 
 
-def learn(Train_data, Val_data, Train_target, Val_target, Train_query, Val_query, args):
+def learn(Train_data, Val_data, Train_target, Val_target, Train_query, Val_query):
     Train_query = pd.Series(Train_query['horse_number'])
     Val_query = pd.Series(Val_query['horse_number'])
     # 学習
@@ -67,7 +67,7 @@ if __name__ == '__main__':
     # race_idにsortする。
     data = pd.read_csv(os.path.join(Path(os.getcwd()).parent, 'csv', 'learn_data.csv')).sort_values(
         ['race_id', 'rank'])
-    target_data = pd.Series(int(10000) if i < 4 else 0 for i in data["rank"])  # 1着は10、2着は5、3着は3、4着以降は0
+    target_data = pd.Series(int(10 / i) if i < 4 else 0 for i in data["rank"])  # 1着は10、2着は5、3着は3、4着以降は0
     data = data.drop(columns='rank', axis=1)
     train_data, val_data, test_data, train_target, val_target, test_target, train_query, val_query, test_query = split_data(
         data, target_data)
