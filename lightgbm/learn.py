@@ -16,25 +16,25 @@ from modify_data import category_columns
 from result_analysis import correct_answer_rate
 
 
-def learn(Train_data, Val_data, Train_target, Val_target, Train_query, Val_query, Optuna_use=False):
+def learn(Train_data, Val_data, Train_target, Val_target, Train_query, Val_query, args):
     Train_query = pd.Series(Train_query['horse_number'])
     Val_query = pd.Series(Val_query['horse_number'])
     # 学習
     lgb_train = lgb.Dataset(Train_data, Train_target, group=Train_query)
     lgb_valid = lgb.Dataset(Val_data, Val_target, group=Val_query, reference=lgb_train)
-    if Optuna_use:
+    if args.optuna:
         print('use optuna !!')
         time.sleep(1)
         param = {
             'objective': 'lambdarank',
             'metric': 'ndcg',
             'ndcg_eval_at': [1, 2, 3],
-            'feature_pre_filter' : False,
-            'force_col_wise' : True,
+            'feature_pre_filter': False,
+            'force_col_wise': True,
         }
-        best = LGB_optuna.train(param, lgb_train, valid_sets=lgb_valid,verbose_eval=50)
+        best = LGB_optuna.train(param, lgb_train, valid_sets=lgb_valid, verbose_eval=50)
         print(best.params)
-        model = lgb.train(best.params, lgb_train,verbose_eval=50)
+        model = lgb.train(best.params, lgb_train, verbose_eval=50)
     else:
         # lightGBMのパラメータ設定
         lgbm_params = {
@@ -58,10 +58,16 @@ def learn(Train_data, Val_data, Train_target, Val_target, Train_query, Val_query
 
 
 if __name__ == '__main__':
+    import argparse
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-o", "--optuna", help="using optuna", action="store_true")
+    args = parser.parse_args()
+
     # race_idにsortする。
     data = pd.read_csv(os.path.join(Path(os.getcwd()).parent, 'csv', 'learn_data.csv')).sort_values(
         ['race_id', 'rank'])
-    target_data = pd.Series(int(1.0 / i * 10) if i < 4 else 0 for i in data["rank"])  # 1着は10、2着は5、3着は3、4着以降は0
+    target_data = pd.Series(int(10000) if i < 4 else 0 for i in data["rank"])  # 1着は10、2着は5、3着は3、4着以降は0
     data = data.drop(columns='rank', axis=1)
     train_data, val_data, test_data, train_target, val_target, test_target, train_query, val_query, test_query = split_data(
         data, target_data)
@@ -78,9 +84,7 @@ if __name__ == '__main__':
     val_data = category_columns(val_data)
     test_data = category_columns(test_data)
 
-    Optuna_use = True
-
-    model = learn(train_data, val_data, train_target, val_target, train_query, val_query, Optuna_use)
+    model = learn(train_data, val_data, train_target, val_target, train_query, val_query)
     print('__________________________')
     pred = model.predict(test_data, num_iteration=model.best_iteration)
 

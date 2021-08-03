@@ -87,7 +87,7 @@ horse_data_columns = [
 
 
 def make_csv_from_html():
-    for year in range(2018, 2018 + 1):
+    for year in range(2018, now_datetime.year + 1):
         make_csv_from_html_by_year(year)
 
 
@@ -315,10 +315,10 @@ def get_rade_and_horse_data_by_html(race_id, html):
 
 
 if __name__ == '__main__':
-    make_csv_from_html()
+    # make_csv_from_html()
 
-    # file_name = '201409030810'
-    # with open(f"{Path(os.getcwd()).parent}/race_html/2014/6/{file_name}.html", "r") as f:
-    #     html = f.read()
-    #     race_list , horse_list_lsit = get_rade_and_horse_data_by_html(file_name, html)
-    #     print(race_list)
+    file_name = '201808031111'
+    with open(f"{Path(os.getcwd()).parent}/race_html/2018/5/{file_name}.html", "r") as f:
+        html = f.read()
+        race_list, horse_list_lsit = get_rade_and_horse_data_by_html(file_name, html)
+        print(race_list)
