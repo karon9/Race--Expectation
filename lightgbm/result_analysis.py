@@ -19,13 +19,11 @@ def tansyo(df, query_df, first_index=0):
     race_count = 0
     dividen = 0
     for query_num in list(query_df.values.flatten().tolist()):
+        if df['tansyo'][first_index].astype(np.int32) > 100000:
+            continue
         if df['result'][first_index] == 10:
             hit_count += 1
             dividen += df['tansyo'][first_index].astype(np.int32)
-            if df['tansyo'][first_index].astype(np.int32) > 100000:
-                hit_count -= 1
-                race_count -= 1
-                dividen -= df['tansyo'][first_index].astype(np.int32)
         race_count += 1
         first_index += query_num
     print('総レース : {}'.format(race_count))

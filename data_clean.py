@@ -8,6 +8,7 @@ import pytz
 import numpy as np
 import pandas as pd
 import os
+from tqdm import tqdm
 
 now_datetime = datetime.datetime.now(pytz.timezone('Asia/Tokyo'))
 
@@ -29,11 +30,9 @@ if not len(race_df) == len(race_df['race_id'].unique()):
 print(race_df.shape)
 race_df.tail(2)
 
-# 出走馬数の確認
-race_df["total_horse_number"].value_counts()
-
-print(horse_df.shape)
-horse_df.head(2)
+# indexを振り直す
+race_df = race_df.reset_index(drop=True)
+horse_df = horse_df.reset_index(drop=True)
 
 # ### race_id
 # そのままでOK
@@ -46,8 +45,6 @@ race_df["race_id"].dtypes
 # 余分な空白とRを取り除く
 
 
-race_df["race_round"].dtypes
-
 race_df['race_round'].unique()
 
 race_df['race_round'] = race_df['race_round'].str.strip('R \n')
@@ -55,11 +52,8 @@ race_df['race_round'] = race_df['race_round'].str.strip('R \n')
 race_df['race_round'].unique()
 
 race_df['race_round'] = race_df['race_round'].astype(int)
-race_df["race_round"].dtypes
 
 # ### race_title
-# いらないので削除
-
 
 # もともとのカラムは不要なので削除
 race_title = race_df['race_title']
@@ -161,14 +155,11 @@ print("ground_status:", race_df["ground_status"].value_counts())
 # ### time と dateをあわせてdatetimeに
 
 
-# race_df["time"] = race_df["time"].str.replace('発走 : (\d\d):(\d\d)(.|\n)*', r'\1時\2分')
+race_df["time"] = race_df["time"].str.replace('発走 : (\d\d):(\d\d)(.|\n)*', r'\1時\2分')
 
-# race_df["date"] = race_df["date"] + race_df["time"]
+race_df["date"] = race_df["date"] + race_df["time"]
 
-# race_df["date"] = pd.to_datetime(race_df['date'], format='%m月%d日%H時%M分')
-
-race_df["date"] = race_df["date"].str.extract('(\d)月.', expand=True)
-race_df = race_df.rename(columns={'date': 'date_month'})
+race_df["date"] = pd.to_datetime(race_df['date'], format='%Y年%m月%d日%H時%M分')
 
 # もともとのtimeは不要なので削除
 race_df.drop(['time'], axis=1, inplace=True)
@@ -241,8 +232,18 @@ for i in range(1, 5):
 
 # ###  ラップタイム
 # 先頭馬のラップタイムのため、スローかハイペースかの指標作成に使える。またはもっと細かな分析か。クラスタ分類
-# pd.concat([race_df['race_id'], race_df['rap-time']], axis=1).to_csv('csv/reference/rap-time.csv', index=False)
+rap_time_df = race_df['rap-time'].str.split('-', expand=True)
+rap_time_race_df = pd.concat(
+    [race_df['race_id'], race_df['where_racecourse'], race_df['baba-index'], race_df['ground_type'],
+     race_df['distance'], rap_time_df], axis=1)
+
+rap_time_horse_df = pd.concat(
+    [horse_df['race_id'], horse_df['rank'], horse_df['horse_number']],
+    axis=1)
+rap_time_df = pd.merge(rap_time_race_df, rap_time_horse_df, on='race_id')
+rap_time_df.to_csv(os.path.join('csv', 'reference', 'rap-time.csv'))
 race_df.drop(['rap-time'], axis=1, inplace=True)
+
 # 理想は各馬のラップタイム
 
 # ペースタイムはいらない
@@ -261,7 +262,7 @@ race_df.head(1)
 # ### race dataの保存
 
 
-race_df.to_csv("csv/cleaned_race_data.csv", encoding='utf_8_sig',
+race_df.to_csv(os.path.join("csv", "cleaned_race_data.csv"), encoding='utf_8_sig',
                index=False)
 
 # ## horse data の整形
@@ -277,24 +278,35 @@ horse_df['rider_id'] = horse_df['rider_id'].astype(str)
 
 horse_df.head(2)
 
-# 何かとデータ分析で便利なので、レース月情報をmerge
-race_tmp_df = race_df[["race_id", "date_month"]]
-horse_df = pd.merge(horse_df, race_tmp_df, on='race_id')
-horse_df.head()
+# - goal_time_dif(rankと組み合わせて、targetの指標に使用したい)
+goal_time_dif_df = horse_df['goal_time_dif'].astype(str)
+goal_time_dif_df = goal_time_dif_df.str.split('+', expand=True)
+goal_time_dif_df.columns = ['a', 'b']
+goal_time_dif_df['b'] = goal_time_dif_df['b'].fillna(0)
+for i in ['a', 'b']:
+    bunsuu = {'1/2': 0.5, '1/4': 0.25, '3/4': 0.75}
+    goal_time_dif_df[i] = goal_time_dif_df[i].apply(
+        lambda x: float(x.split('.')[0]) + bunsuu[x.split('.')[1]] if '.' in str(x) else x)
+    goal_time_dif_df[i] = goal_time_dif_df[i].apply(lambda x: bunsuu[x] if '/' in str(x) else x)
+    goal_time_dif_df[i][goal_time_dif_df[i] == 'ハナ'] = float(0.1)
+    goal_time_dif_df[i][goal_time_dif_df[i] == 'アタマ'] = float(0.2)
+    goal_time_dif_df[i][goal_time_dif_df[i] == 'クビ'] = float(0.3)
+    goal_time_dif_df[i][goal_time_dif_df[i] == 'nan'] = float(0)
+    goal_time_dif_df[i][goal_time_dif_df[i] == '同着'] = float(0)
+    goal_time_dif_df[i][goal_time_dif_df[i] == '大'] = float(10)
+    goal_time_dif_df[i] = goal_time_dif_df[i].astype(float)
+horse_df['goal_time_dif'] = goal_time_dif_df['a'] + goal_time_dif_df['b']
 
 # ### 使わなさそうな情報を削除
 # - time_value, tame_time(プレミアム会員向けの情報)
-# - goal_time_dif(自分で作成する)
 # - frame_number(枠順)
-# - half_way_rank(通過) 使えそうだが、面倒なので削除
 # - stable_comment(厩舎コメント)　面倒なので取得してない
 
 
 # horse_df.drop(['time_value'], axis=1, inplace=True)
-horse_df.drop(['goal_time_dif'], axis=1, inplace=True)
+# horse_df.drop(['goal_time_dif'], axis=1, inplace=True)
 horse_df.drop(['tame_time'], axis=1, inplace=True)
 horse_df.drop(['frame_number'], axis=1, inplace=True)
-# horse_df.drop(['half_way_rank'], axis=1, inplace=True)
 horse_df.drop(['stable_comment'], axis=1, inplace=True)
 
 # ### race_id
@@ -420,7 +432,7 @@ horse_df["half_way_rank"].isnull().sum()
 
 horse_df["half_way_rank"] = horse_df["half_way_rank"].astype(float)
 
-### horse_weight と diff の分離
+# ### horse_weight と diff の分離
 # 「計不」は平均で穴埋め
 
 
@@ -441,8 +453,8 @@ no_records = horse_df[horse_df['horse_weight'].isnull()]['horse_id']
 for no_record_id in no_records:
     horse_df.loc[(horse_df['horse_id'] == no_record_id) & (horse_df['horse_weight'].isnull()), 'horse_weight'] = \
         horse_df[horse_df['horse_id'] == no_record_id]['horse_weight'].mean()
-    horse_df.loc[
-        (horse_df['horse_id'] == no_record_id) & (horse_df['horse_weight_dif'].isnull()), 'horse_weight_dif'] = 0
+horse_df.loc[
+    (horse_df['horse_id'] == no_record_id) & (horse_df['horse_weight_dif'].isnull()), 'horse_weight_dif'] = 0
 
 horse_df.dtypes
 
@@ -474,6 +486,5 @@ horse_df['odds'] = horse_df['odds'].astype(float)
 
 
 print(horse_df.dtypes)
-horse_df.head(3)
 
-horse_df.to_csv("csv/cleaned_horse_data.csv", encoding='utf_8_sig', index=False)
+horse_df.to_csv(os.path.join("csv", "cleaned_horse_data.csv"), encoding='utf_8_sig', index=False)
