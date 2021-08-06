@@ -4,7 +4,7 @@ import os
 from pathlib import Path
 
 # 必要ないかもしれないデータ
-after_add_horse_columns = ['age', 'burden_weight', 'half_way_rank', 'date_month', 'is_mesu', 'is_osu',
+after_add_horse_columns = ['age', 'burden_weight','is_mesu', 'is_osu',
                            'horse_weight_dif']
 after_add_race_columns = ['total_horse_number', 'is_left_right_straight']
 

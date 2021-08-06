@@ -65,10 +65,17 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     # race_idにsortする。
-    data = pd.read_csv(os.path.join(Path(os.getcwd()).parent, 'csv', 'learn_data.csv')).sort_values(
-        ['race_id', 'rank'])
-    target_data = pd.Series(int(10 / i) if i < 4 else 0 for i in data["rank"])  # 1着は10、2着は5、3着は3、4着以降は0
-    data = data.drop(columns='rank', axis=1)
+    data = pd.read_csv(os.path.join(Path(os.getcwd()).parent, 'csv', 'learn_data.csv'))
+
+    # target_data = pd.Series(int(10 / i) if i < 6 else 0 for i in data["rank"])  # 1着は10、2着は5、3着は3、4着以降は0
+    target_data = data['goal_time_dif'].astype(int)
+    target_data = target_data.apply(lambda x: 30 if x > 30 else x)
+
+    data = data.drop(['goal_time_dif', 'date', 'rank'], axis=1)
+    data['half_way_rank'] = data['half_way_rank'].astype(int).astype('category')
+    # data = data.drop(['half_way_rank'], axis=1)
+
+    # data = data.drop(columns='rank', axis=1)
     train_data, val_data, test_data, train_target, val_target, test_target, train_query, val_query, test_query = split_data(
         data, target_data)
 

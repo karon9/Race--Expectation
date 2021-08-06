@@ -297,6 +297,20 @@ for i in ['a', 'b']:
     goal_time_dif_df[i] = goal_time_dif_df[i].astype(float)
 horse_df['goal_time_dif'] = goal_time_dif_df['a'] + goal_time_dif_df['b']
 
+for i in tqdm(horse_df['goal_time_dif'].index):
+    if str(horse_df['rank'][i]) == '1':
+        horse_df['goal_time_dif'][i] = sum(list(horse_df['goal_time_dif'][i+1:i+4]))
+    elif str(horse_df['rank'][i]) == '2':
+        horse_df['goal_time_dif'][i] = sum(list(horse_df['goal_time_dif'][i+1:i+3]))
+    elif str(horse_df['rank'][i]) == '3':
+        horse_df['goal_time_dif'][i] = sum(list(horse_df['goal_time_dif'][i+1:i+2]))
+    # elif str(horse_df['rank'][i]) == '4':
+    #     horse_df['goal_time_dif'][i] = sum(list(horse_df['goal_time_dif'][i+1:i+3]))
+    # elif str(horse_df['rank'][i]) == '5':
+    #     horse_df['goal_time_dif'][i] = sum(list(horse_df['goal_time_dif'][i+1:i+2]))
+    else:
+        horse_df['goal_time_dif'][i] = 0
+
 # ### 使わなさそうな情報を削除
 # - time_value, tame_time(プレミアム会員向けの情報)
 # - frame_number(枠順)
