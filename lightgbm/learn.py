@@ -70,8 +70,9 @@ if __name__ == '__main__':
     # target_data = pd.Series(int(10 / i) if i < 6 else 0 for i in data["rank"])  # 1着は10、2着は5、3着は3、4着以降は0
     target_data = data['goal_time_dif'].astype(int)
     target_data = target_data.apply(lambda x: 30 if x > 30 else x)
+    target_data = pd.concat([target_data,data['rank']],axis=1)
 
-    data = data.drop(['goal_time_dif', 'date', 'rank'], axis=1)
+    data = data.drop(['goal_time_dif','rank'], axis=1)
     data['half_way_rank'] = data['half_way_rank'].astype(int).astype('category')
     # data = data.drop(['half_way_rank'], axis=1)
 
@@ -91,11 +92,11 @@ if __name__ == '__main__':
     val_data = category_columns(val_data)
     test_data = category_columns(test_data)
 
-    model = learn(train_data, val_data, train_target, val_target, train_query, val_query)
+    model = learn(train_data, val_data, train_target['goal_time_dif'], val_target['goal_time_dif'], train_query, val_query)
     print('__________________________')
     pred = model.predict(test_data, num_iteration=model.best_iteration)
 
-    result = pd.DataFrame({'race_id': test_race_id.values, 'predict': pred, 'result': test_target})
+    result = pd.DataFrame({'date': test_data['date'],'race_id': test_race_id.values, 'predict': pred, 'result': test_target['rank']})
     tansyo, hukusyo = correct_answer_rate(result, test_query)
     print('単勝的中率 : {:.2f}%     単勝回収率 : {:.2f}%'.format(tansyo[0], tansyo[1]))
     print('複勝的中率 : {:.2f}%     複勝回収率 : {:.2f}%'.format(hukusyo[0], hukusyo[1]))
