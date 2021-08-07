@@ -68,37 +68,49 @@ if __name__ == '__main__':
     parser.add_argument("-o", "--optuna", help="using optuna", action="store_true")
     args = parser.parse_args()
 
-    # race_idにsortする。
     data = pd.read_csv(os.path.join(Path(os.getcwd()).parent, 'csv', 'learn_data.csv'))
 
+    # target_data = pd.Series(int(10 / i) if i < 6 else 0 for i in data["rank"])  # 1着は10、2着は5、3着は3、4着以降は0
     target_data = data['goal_time_dif'].astype(int)
     target_data = target_data.apply(lambda x: 30 if x > 30 else x)
     target_data = pd.concat([target_data, data['rank']], axis=1)
-
     data = data.drop(['goal_time_dif', 'rank'], axis=1)
     data['half_way_rank'] = data['half_way_rank'].astype(int).astype('category')
-    # data = data.drop(['half_way_rank'], axis=1)
 
-    # data = data.drop(columns='rank', axis=1)
     train_data, val_data, test_data, train_target, val_target, test_target, train_query, val_query, test_query = split_data(
         data, target_data)
+    train_data = pd.concat([train_data, val_data], axis=0)
+    train_target = pd.concat([train_target, val_target], axis=0)
+
+    # data = data.drop(columns='rank', axis=1)
+    train_query = pd.concat([train_query, val_query], axis=0)
 
     # race_idをdrop
-    train_data = race_id_drop(train_data)
-    val_data = race_id_drop(val_data)
+    # train_data = race_id_drop(train_data)
+    # test_dataのrace_idを後に紐づけるために保存
 
     # カラムをカテゴリ変数に変更
     train_data = category_columns(train_data)
-    val_data = category_columns(val_data)
     test_data = category_columns(test_data)
 
-    model = learn(train_data, val_data, train_target['goal_time_dif'], val_target['goal_time_dif'], train_query,
-                  val_query)
-    print('__________________________')
     file = f'{dt_now.year}-{dt_now.month}-{dt_now.day}.pkl'
-    pickle.dump(model, open(os.path.join(Path(os.getcwd()).parent, 'model', file), 'wb'))
-    test_data.to_csv(os.path.join(Path(os.getcwd()).parent, 'test.csv'), encoding='utf_8_sig', index=False)
-    # test_target.to_csv(os.path.join(Path(os.getcwd()).parent, 'test_target_today.csv'), encoding='utf_8_sig', index=False)
+    file = os.path.join(Path(os.getcwd()).parent, 'model', file)
+    if not os.path.exists(file):
+        model = learn(train_data, test_data, train_target['goal_time_dif'], test_target['goal_time_dif'], train_query,
+                      test_query)
+    else:
+        with open(file, mode='rb') as f:
+            print('load model...')
+            model = pickle.load(f)
+    print('__________________________')
+
+    pickle.dump(model, open(file, 'wb'))
+
+    test_data = pd.read_csv(os.path.join(Path(os.getcwd()).parent, 'predict.csv'))
+    # test_data = pd.read_csv(os.path.join(Path(os.getcwd()).parent, 'test.csv'))
+    test_data = category_columns(test_data)
+    # test_target = pd.read_csv(os.path.join((Path(os.getcwd()).parent), 'test_target.csv'))
+    test_query = pd.DataFrame(test_data.groupby('date')['horse_number'].count()).reset_index(drop=True)
 
     # test_dataのrace_idを後に紐づけるために保存
     test_race_id = test_data['race_id']
@@ -106,14 +118,9 @@ if __name__ == '__main__':
 
     pred = model.predict(test_data, num_iteration=model.best_iteration)
 
-
     result = pd.DataFrame(
-        {'date': test_data['date'], 'race_id': test_race_id.values, 'predict': pred, 'result': test_target['rank']})
-    tansyo, hukusyo = correct_answer_rate(result, test_query)
-    print('単勝的中率 : {:.2f}%     単勝回収率 : {:.2f}%'.format(tansyo[0], tansyo[1]))
-    print('複勝的中率 : {:.2f}%     複勝回収率 : {:.2f}%'.format(hukusyo[0], hukusyo[1]))
-    result.to_csv(os.path.join(Path(os.getcwd()).parent, 'csv', 'result.csv'), encoding='utf_8_sig', index=False)
-
+        {'race_id': test_race_id.values, 'number': test_data['horse_number'], 'predict': pred})
+    result.to_csv(os.path.join(Path(os.getcwd()).parent, 'result.csv'), encoding='utf_8_sig', index=False)
     # shapを使用
     explainer = shap.TreeExplainer(model)
     shap_values = explainer.shap_values(train_data)
