@@ -38,7 +38,7 @@ def learn(Train_data, Val_data, Train_target, Val_target, Train_query, Val_query
         }
         best = LGB_optuna.train(param, lgb_train, valid_sets=lgb_valid, verbose_eval=50)
         print(best.params)
-        model = lgb.train(best.params, lgb_train, verbose_eval=50)
+        model = lgb.train(best.p rams, lgb_train, verbose_eval=50)
     else:
         # lightGBMのパラメータ設定
         lgbm_params = {
@@ -86,7 +86,8 @@ if __name__ == '__main__':
     train_query = pd.concat([train_query, val_query], axis=0)
 
     # race_idをdrop
-    # train_data = race_id_drop(train_data)
+    train_data = race_id_drop(train_data)
+    test_data = race_id_drop(test_data)
     # test_dataのrace_idを後に紐づけるために保存
 
     # カラムをカテゴリ変数に変更
@@ -106,22 +107,22 @@ if __name__ == '__main__':
 
     pickle.dump(model, open(file, 'wb'))
 
-    test_data = pd.read_csv(os.path.join(Path(os.getcwd()).parent, 'predict.csv'))
+    pre_data = pd.read_csv(os.path.join(Path(os.getcwd()).parent, 'predict.csv'))
     # test_data = pd.read_csv(os.path.join(Path(os.getcwd()).parent, 'test.csv'))
-    test_data = category_columns(test_data)
+    pre_data = category_columns(pre_data)
     # test_target = pd.read_csv(os.path.join((Path(os.getcwd()).parent), 'test_target.csv'))
-    test_query = pd.DataFrame(test_data.groupby('date')['horse_number'].count()).reset_index(drop=True)
+    pre_query = pd.DataFrame(pre_data.groupby('date')['horse_number'].count()).reset_index(drop=True)
 
     # test_dataのrace_idを後に紐づけるために保存
-    test_race_id = test_data['race_id']
-    test_data = race_id_drop(test_data)
+    pre_race_id = pre_data['race_id']
+    pre_data = race_id_drop(pre_data)
 
-    pred = model.predict(test_data, num_iteration=model.best_iteration)
+    pred = model.predict(pre_data, num_iteration=model.best_iteration)
 
     result = pd.DataFrame(
-        {'race_id': test_race_id.values, 'number': test_data['horse_number'], 'predict': pred})
+        {'race_id': pre_race_id.values, 'number': pre_data['horse_number'], 'predict': pred})
     result.to_csv(os.path.join(Path(os.getcwd()).parent, 'result.csv'), encoding='utf_8_sig', index=False)
     # shapを使用
-    explainer = shap.TreeExplainer(model)
-    shap_values = explainer.shap_values(train_data)
-    shap.summary_plot(shap_values=shap_values, features=train_data, feature_names=train_data.columns)
+    # explainer = shap.TreeExplainer(model)
+    # shap_values = explainer.shap_values(train_data)
+    # shap.summary_plot(shap_values=shap_values, features=train_data, feature_names=train_data.columns)

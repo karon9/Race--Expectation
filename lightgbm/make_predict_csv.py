@@ -10,7 +10,7 @@ import numpy as np
 if __name__ == '__main__':
     url = 'https://race.netkeiba.com/race/shutuba.html?race_id=202104030511&rf=race_submenu'
     # race_id
-    race_id = url.split("=")[-1]
+    race_id = re.sub("\D","", url)
     html = requests.get(url)
     race_list = []
     soup = BeautifulSoup(html.content, "html.parser")
@@ -55,7 +55,6 @@ if __name__ == '__main__':
         # rider_id
         rider_id_list.append(horse_list[number].find_all("a")[1].get("href").split("/")[-2])
 
-
     race_id_csv = pd.Series(np.arange(len(horse_number_list)), name="race_id")
     race_id_csv[:] = race_id
     horse_number_csv = pd.Series(horse_number_list, name="horse_number")
@@ -63,7 +62,7 @@ if __name__ == '__main__':
     horse_id_csv = pd.Series(horse_id_list, name="horse_id")
 
     horse_flow = {}
-    horse_flow_list =[]
+    horse_flow_list = []
     count = 0
     race_slide_list = soup.find("div", class_="DeployRace_Slide").find("ul").find_all("dd")
     for race_slides in race_slide_list:
@@ -74,11 +73,10 @@ if __name__ == '__main__':
             horse_num = re.split('\D', horse_name)[0]
             horse_flow[f'{count}'] = int(horse_num)
 
-    horse_flow_sorted = sorted(horse_flow.items(), key=lambda x:x[1])
+    horse_flow_sorted = sorted(horse_flow.items(), key=lambda x: x[1])
     for horse_flow in horse_flow_sorted:
         horse_flow_list.append(horse_flow[0])
     half_way_csv = pd.Series(horse_flow_list, name="half_way_rank")
-
 
     remarks_csv = pd.Series(np.arange(len(horse_number_list)), name="remarks")
     remarks_csv[:] = ''
