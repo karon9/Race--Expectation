@@ -38,8 +38,16 @@ def learn(Train_data, Val_data, Train_target, Val_target, Train_query, Val_query
         }
         best = LGB_optuna.train(param, lgb_train, valid_sets=lgb_valid, verbose_eval=50)
         print(best.params)
-        model = lgb.train(best.p rams, lgb_train, verbose_eval=50)
+        Train_data = pd.concat([Train_data, Val_data], axis=0)
+        Train_query = pd.concat([Train_query, Val_query], axis=0)
+        Train_target = pd.concat([Train_target, Val_target], axis=0)
+        lgb_train = lgb.Dataset(Train_data, Train_target, group=Train_query)
+        model = lgb.train(best.prams, lgb_train, verbose_eval=50)
+        pickle.dump(best.prams, open(os.path.join(Path(os.getcwd()).parent, 'params.csv'), 'wb'))
     else:
+        with open(os.path.join(Path(os.getcwd()).parent, 'params.csv'), mode='rb') as f:
+            print('load model...')
+            prams = pickle.load(f)
         # lightGBMのパラメータ設定
         lgbm_params = {
             'objective': 'lambdarank',
@@ -51,11 +59,8 @@ def learn(Train_data, Val_data, Train_target, Val_target, Train_query, Val_query
             'random_state': 0,
         }
         model = lgb.train(
-            params=lgbm_params,
+            params=prams,
             train_set=lgb_train,
-            num_boost_round=300,
-            valid_sets=lgb_valid,
-            valid_names=['train', 'valid'],
             verbose_eval=50
         )
     return model
