@@ -43,7 +43,7 @@ def learn(Train_data, Val_data, Train_target, Val_target, Train_query, Val_query
         Train_target = pd.concat([Train_target, Val_target], axis=0)
         lgb_train = lgb.Dataset(Train_data, Train_target, group=Train_query)
         model = lgb.train(best.prams, lgb_train, verbose_eval=50)
-        pickle.dump(best.prams, open(os.path.join(Path(os.getcwd()).parent, 'params.csv'), 'wb'))
+        pickle.dump(best.params, open(os.path.join(Path(os.getcwd()).parent, 'params.csv'), 'wb'))
     else:
         with open(os.path.join(Path(os.getcwd()).parent, 'params.csv'), mode='rb') as f:
             print('load model...')
