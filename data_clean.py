@@ -175,11 +175,27 @@ race_df["where_racecourse"].unique()
 
 # ### race_rank : レースのレベル(オープンをG1などで分けるようにした。)
 race_rank = race_df['race_rank']
-for index in race_rank.index:
+for index in tqdm(race_rank.index):
     if 'オープン' in race_rank.values[index]:
         if '(' in race_title.values[index]:
-            race_rank[index] = str(race_rank.values[index].split('オープン')[0] + \
-                                   race_title.values[index].split('(')[1].split(')')[0])
+            if race_title.values[index].split('(')[1].split(')')[0] == 'G':
+                race_rank[index] = str(race_rank.values[index].split('オープン')[0]) + 'G3'
+            elif race_title.values[index].split('(')[1].split(')')[0] == '秋' or \
+                    race_title.values[index].split('(')[1].split(')')[0] == '春':
+                race_rank[index] = str(race_rank.values[index].split('オープン')[0]) + 'G1'
+            elif race_title.values[index].split('(')[1].split(')')[0] == 'L':
+                race_rank[index] = str(race_rank.values[index].split('オープン')[0]) + 'OP'
+            else:
+                race_rank[index] = str(race_rank.values[index].split('オープン')[0]) + \
+                                   str(race_title.values[index].split('(')[1].split(')')[0])
+        else:
+            race_rank[index] = str(race_rank.values[index].split('オープン')[0]) + 'OP'
+    if '1勝クラス' in race_title.values[index]:
+        race_rank[index] = race_rank.values[index].replace('1勝クラス', '500万下')
+    if '2勝クラス' in race_title.values[index]:
+        race_rank[index] = race_rank.values[index].replace('2勝クラス', '1000万下')
+    if '3勝クラス' in race_title.values[index]:
+        race_rank[index] = race_rank.values[index].replace('3勝クラス', '1600万下')
 
 # ###  馬の数や順位
 # 枠であるframeは取り除く
@@ -297,19 +313,21 @@ for i in ['a', 'b']:
     goal_time_dif_df[i] = goal_time_dif_df[i].astype(float)
 horse_df['goal_time_dif'] = goal_time_dif_df['a'] + goal_time_dif_df['b']
 
-for i in tqdm(horse_df['goal_time_dif'].index):
-    if str(horse_df['rank'][i]) == '1':
-        horse_df['goal_time_dif'][i] = sum(list(horse_df['goal_time_dif'][i + 1:i + 4]))
-    elif str(horse_df['rank'][i]) == '2':
-        horse_df['goal_time_dif'][i] = sum(list(horse_df['goal_time_dif'][i + 1:i + 3]))
-    elif str(horse_df['rank'][i]) == '3':
-        horse_df['goal_time_dif'][i] = sum(list(horse_df['goal_time_dif'][i + 1:i + 2]))
-    # elif str(horse_df['rank'][i]) == '4':
-    #     horse_df['goal_time_dif'][i] = sum(list(horse_df['goal_time_dif'][i+1:i+3]))
-    # elif str(horse_df['rank'][i]) == '5':
-    #     horse_df['goal_time_dif'][i] = sum(list(horse_df['goal_time_dif'][i+1:i+2]))
-    else:
-        horse_df['goal_time_dif'][i] = 0
+# ### goal_time_difを指標に使わなくなったため削除
+
+# for i in tqdm(horse_df['goal_time_dif'].index):
+#     if str(horse_df['rank'][i]) == '1':
+#         horse_df['goal_time_dif'][i] = sum(list(horse_df['goal_time_dif'][i + 1:i + 4]))
+#     elif str(horse_df['rank'][i]) == '2':
+#         horse_df['goal_time_dif'][i] = sum(list(horse_df['goal_time_dif'][i + 1:i + 3]))
+#     elif str(horse_df['rank'][i]) == '3':
+#         horse_df['goal_time_dif'][i] = sum(list(horse_df['goal_time_dif'][i + 1:i + 2]))
+#     # elif str(horse_df['rank'][i]) == '4':
+#     #     horse_df['goal_time_dif'][i] = sum(list(horse_df['goal_time_dif'][i+1:i+3]))
+#     # elif str(horse_df['rank'][i]) == '5':
+#     #     horse_df['goal_time_dif'][i] = sum(list(horse_df['goal_time_dif'][i+1:i+2]))
+#     else:
+#         horse_df['goal_time_dif'][i] = 0
 
 # ### 使わなさそうな情報を削除
 # - time_value, tame_time(プレミアム会員向けの情報)
@@ -329,9 +347,9 @@ horse_df.drop(['stable_comment'], axis=1, inplace=True)
 # ### rank
 # > - 降着・・・	「その走行妨害がなければ被害馬が加害馬に先着していた」と判断した場合、加害馬は被害馬の後ろに降着となります。
 # > - 失格・・・	「極めて悪質で他の騎手や馬に対する危険な行為によって、競走に重大な支障を生じさせた」と判断した場合、加害馬は失格となります。
-# 
+#
 # > 注記：被害馬が落馬や疾病発症等により競走を中止した場合には、上記の「失格」に該当しない限り着順は到達順位のとおり確定します。
-# 
+#
 
 # - 降格は降格フラグに分割、順位そのまま入れておく
 # - 取・除はそもそも参加していないので削除
