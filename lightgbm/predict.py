@@ -39,25 +39,27 @@ def learn(Train_data, Val_data, Train_target, Val_target, Train_query, Val_query
         best = LGB_optuna.train(param, lgb_train, valid_sets=lgb_valid, verbose_eval=50)
         print(best.params)
         Train_data = pd.concat([Train_data, Val_data], axis=0)
+        Train_data = category_columns(Train_data)
         Train_query = pd.concat([Train_query, Val_query], axis=0)
         Train_target = pd.concat([Train_target, Val_target], axis=0)
         lgb_train = lgb.Dataset(Train_data, Train_target, group=Train_query)
         model = lgb.train(best.prams, lgb_train, verbose_eval=50)
         pickle.dump(best.params, open(os.path.join(Path(os.getcwd()).parent, 'params.csv'), 'wb'))
     else:
-        with open(os.path.join(Path(os.getcwd()).parent, 'params.csv'), mode='rb') as f:
-            print('load model...')
-            prams = pickle.load(f)
+        # with open(os.path.join(Path(os.getcwd()).parent, 'params.csv'), mode='rb') as f:
+        #     print('load model...')
+        #     prams = pickle.load(f)
         # lightGBMのパラメータ設定
-        lgbm_params = {
-            'objective': 'lambdarank',
-            'metric': 'ndcg',
-            'lambdarank_truncation_level': 10,
-            'ndcg_eval_at': [1, 2, 3],
-            'learning_rate': 0.01,
-            'boosting_type': 'gbdt',
-            'random_state': 0,
-        }
+        prams = {'objective': 'lambdarank', 'metric': 'ndcg', 'ndcg_eval_at': [1], 'feature_pre_filter': False,
+                 'force_col_wise': True, 'lambda_l1': 0.0, 'lambda_l2': 0.0, 'num_leaves': 4, 'feature_fraction': 0.4,
+                 'bagging_fraction': 0.9725813736058717, 'bagging_freq': 2, 'min_child_samples': 20,
+                 'num_iterations': 1000, 'early_stopping_round': None,
+                 'categorical_column': [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]}
+        Train_data = pd.concat([Train_data, Val_data], axis=0)
+        Train_data = category_columns(Train_data)
+        Train_query = pd.concat([Train_query, Val_query], axis=0)
+        Train_target = pd.concat([Train_target, Val_target], axis=0)
+        lgb_train = lgb.Dataset(Train_data, Train_target, group=Train_query)
         model = lgb.train(
             params=prams,
             train_set=lgb_train,

@@ -4,15 +4,14 @@ import os
 from pathlib import Path
 
 # 必要ないかもしれないデータ
-after_add_horse_columns = ['age', 'burden_weight', 'is_mesu', 'is_osu',
-                           'horse_weight_dif']
-after_add_race_columns = ['total_horse_number', 'is_left_right_straight']
+after_add_horse_columns = ['half_way_rank', 'remarks']
+after_add_race_columns = ['total_horse_number']
 
 odds = ['tansyo', 'hukusyo_first', 'hukusyo_second',
         'hukusyo_third', 'wakuren', 'umaren', 'wide_1_2', 'wide_1_3', 'wide_2_3', 'umatan', 'renhuku3',
         'rentan3']
 
-horse_drop_columns = ['goal_time', 'time_value', 'last_time', 'distance',
+horse_drop_columns = ['goal_time', 'last_time', 'distance',
                       'horse_weight', 'tamer_id', 'owner_id', 'short_comment', 'avg_velocity',
                       'burden_weight_rate', 'is_senba', 'is_down']
 
@@ -38,6 +37,7 @@ def drop_race_data(df: pandas.DataFrame):
 
 def race_id_drop(df):
     df = df.drop('race_id', axis=1)
+    df = df.drop('date', axis=1)
     return df
 
 

@@ -7,3 +7,4 @@ race_url
 test_csv
 *.ipynb
 *__pycache__*
+*.pkl

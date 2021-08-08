@@ -23,7 +23,7 @@ def split_data_base_on_query(origin_data, target=False):
 
 def split_data(Data, Target_data):
     # traget のカラムを変更したいならtarget = True
-    train_data, val_data, test_data = split_data_base_on_query(Data, target=True)
+    train_data, val_data, test_data = split_data_base_on_query(Data, target=False)
     train_target_data, val_target_data, test_target_data = split_data_base_on_query(Target_data, target=False)
     return train_data, val_data, test_data, train_target_data, val_target_data, test_target_data, train_query_data, val_query_data, test_query_data
 

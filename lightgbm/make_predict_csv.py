@@ -8,7 +8,7 @@ from datetime import datetime, date, time
 import numpy as np
 
 if __name__ == '__main__':
-    url = 'https://race.netkeiba.com/race/shutuba.html?race_id=202104030506'
+    url = 'https://race.netkeiba.com/race/shutuba.html?race_id=202104030610'
     # race_id
     race_id = re.sub("\D","", url)
     html = requests.get(url)
