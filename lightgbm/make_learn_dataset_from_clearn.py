@@ -2,11 +2,13 @@ import pandas as pd
 import os
 from drop_dataset import drop_race_data, drop_horse_data
 from pathlib import Path
+from modify_horse import shift_df
 
 
 def main():
     horse_data = pd.read_csv(os.path.join(Path(os.getcwd()).parent, 'csv', 'cleaned_horse_data.csv'))
     race_data = pd.read_csv(os.path.join(Path(os.getcwd()).parent, 'csv', 'cleaned_race_data.csv'))
+    horse_data = shift_df(horse_data)
     horse_data = horse_data.sort_values(['race_id', 'rank'], ascending=[True, True])
     race_data = race_data.sort_values(['date', 'race_id'], ascending=[True, True])
     horse_data = drop_horse_data(horse_data)

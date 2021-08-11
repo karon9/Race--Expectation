@@ -47,8 +47,7 @@ def learn(Train_data, Val_data, Train_target, Val_target, Train_query, Val_query
                   'feature_pre_filter': False,
                   'force_col_wise': True, 'lambda_l1': 0.0, 'lambda_l2': 0.0, 'num_leaves': 4, 'feature_fraction': 0.4,
                   'bagging_fraction': 0.9725813736058717, 'bagging_freq': 2, 'min_child_samples': 20,
-                  'num_iterations': 1000, 'early_stopping_round': None,
-                  'categorical_column': [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+                  'num_iterations': 500, 'early_stopping_round': None,
                   'label_gain': label_value}
         model = lgb.train(
             params=params,
@@ -73,13 +72,19 @@ if __name__ == '__main__':
 
     # target_data = data['goal_time_dif'].astype(int)
     # target_data = target_data.apply(lambda x: 30 if x > 30 else x)
-    target_data = data['time_value']
-    target_data = target_data.apply(lambda x: 0 if x < 0 else x)
+    # target_data = data['time_value']
+    # target_data = target_data.apply(lambda x: 0 if x < 0 else x)
+    # label_value = sorted(list(target_data.unique()))
+    # label_value = list(map(int, label_value))
+    # target_data = pd.concat([target_data, data['rank']], axis=1)
+    target_data = data['rank']
+    target_data = target_data.apply(lambda x: int(3) if x == 1 else x)
+    target_data = target_data.apply(lambda x: int(2) if x == 2 else x)
+    target_data = target_data.apply(lambda x: int(1) if x == 3 else x)
+    target_data = target_data.apply(lambda x: int(0) if x >= 4 else x)
     label_value = sorted(list(target_data.unique()))
-    label_value = list(map(str, label_value))
-    target_data = pd.concat([target_data, data['rank']], axis=1)
 
-    data = data.drop(['goal_time_dif', 'rank', 'time_value'], axis=1)
+    data = data.drop(['goal_time_dif', 'rank', 'time_value', 'rider_id'], axis=1)
     # data['half_way_rank'] = data['half_way_rank'].astype(int).astype('category')
     # data = data.drop(['half_way_rank'], axis=1)
 
@@ -99,7 +104,7 @@ if __name__ == '__main__':
     val_data = category_columns(val_data)
     test_data = category_columns(test_data)
 
-    model = learn(train_data, val_data, train_target['time_value'], val_target['time_value'], train_query,
+    model = learn(train_data, val_data, train_target, val_target, train_query,
                   val_query, label_value)
     print('__________________________')
     file = f'{dt_now.year}-{dt_now.month}-{dt_now.day}.pkl'
@@ -112,7 +117,7 @@ if __name__ == '__main__':
 
     result = pd.DataFrame(
         {'date': test_data['date'], 'race_id': test_data['race_id'].values, 'predict': pred,
-         'result': test_target['rank']})
+         'result': test_target})
     tansyo, hukusyo = correct_answer_rate(result, test_query)
     print('単勝的中率 : {:.2f}%     単勝回収率 : {:.2f}%'.format(tansyo[0], tansyo[1]))
     print('複勝的中率 : {:.2f}%     複勝回収率 : {:.2f}%'.format(hukusyo[0], hukusyo[1]))
