@@ -7,7 +7,7 @@ import datetime
 
 def category_columns(df):
     number_column = ['burden_weight', 'horse_weight_dif', 'total_horse_number', 'baba-index',
-                     'distance', 'burden_weight', 'horse_weight_dif']
+                     'distance', 'burden_weight', 'horse_weight_dif', 'time_value_1', 'time_value_2', 'time_value_3']
     for column in df.columns:
         if column in number_column:
             df[column] = df[column].astype(np.int32)
