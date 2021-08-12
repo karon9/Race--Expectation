@@ -27,7 +27,7 @@ def shift_df(df_horse: pandas.DataFrame):
         else:
             df_tm = pd.concat([df_tm, df_tm_horse], axis=0)
     df = df_tm.drop('date', axis=1)
-    df.to_csv(os.path.join(Path(os.getcwd()).parent, 'csv', 'test.csv'))
+    df.to_csv(os.path.join(Path(os.getcwd()).parent, 'csv', 'horse_shift.csv'), encoding='utf_8_sig', index=False)
     return df
 
 

@@ -21,7 +21,7 @@ def tansyo(df, query_df, first_index=0):
     for query_num in list(query_df.values.flatten().tolist()):
         if df['tansyo'][first_index].astype(np.int32) > 100000:
             continue
-        if str(df['result'][first_index]) == '1':
+        if str(df['result'][first_index]) == '3':
             hit_count += 1
             dividen += df['tansyo'][first_index].astype(np.int32)
         race_count += 1
@@ -35,13 +35,13 @@ def hukusyo(df, query_df, first_index=0, second_index=1, third_index=2):
     race_count = 0
     dividen = 0
     for query_num in list(query_df.values.flatten().tolist()):
-        if str(df['result'][first_index]) == '1':
+        if str(df['result'][first_index]) == '3':
             hit_count += 1
             dividen += df['hukusyo_first'][first_index].astype(np.int32)
         if str(df['result'][first_index]) == '2':
             hit_count += 1
             dividen += df['hukusyo_second'][first_index].astype(np.int32)
-        if str(df['result'][first_index]) == '3':
+        if str(df['result'][first_index]) == '1':
             hit_count += 1
             dividen += df['hukusyo_third'][first_index].astype(np.int32)
         race_count += 1

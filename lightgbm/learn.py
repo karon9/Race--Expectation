@@ -77,14 +77,14 @@ if __name__ == '__main__':
     # label_value = sorted(list(target_data.unique()))
     # label_value = list(map(int, label_value))
     # target_data = pd.concat([target_data, data['rank']], axis=1)
-    target_data = data['rank']
-    target_data = target_data.apply(lambda x: int(3) if x == 1 else x)
-    target_data = target_data.apply(lambda x: int(2) if x == 2 else x)
-    target_data = target_data.apply(lambda x: int(1) if x == 3 else x)
-    target_data = target_data.apply(lambda x: int(0) if x >= 4 else x)
+    target_data = data['rank'].astype(str)
+    target_data = target_data.apply(lambda x: int(3) if x == '1' else x)
+    target_data = target_data.apply(lambda x: int(2) if x == '2' else x)
+    target_data = target_data.apply(lambda x: int(1) if x == '3' else x)
+    target_data = target_data.apply(lambda x: int(0) if type(x) == str else x)
     label_value = sorted(list(target_data.unique()))
 
-    data = data.drop(['goal_time_dif', 'rank', 'time_value', 'rider_id'], axis=1)
+    data = data.drop(['goal_time_dif', 'rank', 'time_value'], axis=1)
     # data['half_way_rank'] = data['half_way_rank'].astype(int).astype('category')
     # data = data.drop(['half_way_rank'], axis=1)
 
@@ -116,8 +116,8 @@ if __name__ == '__main__':
     test_data = pd.concat([test_data, test_tm_data], axis=1)
 
     result = pd.DataFrame(
-        {'date': test_data['date'], 'race_id': test_data['race_id'].values, 'predict': pred,
-         'result': test_target})
+        {'date': test_data['date'], 'horse_number': test_data['horse_number'], 'race_id': test_data['race_id'].values,
+         'predict': pred, 'result': test_target})
     tansyo, hukusyo = correct_answer_rate(result, test_query)
     print('単勝的中率 : {:.2f}%     単勝回収率 : {:.2f}%'.format(tansyo[0], tansyo[1]))
     print('複勝的中率 : {:.2f}%     複勝回収率 : {:.2f}%'.format(hukusyo[0], hukusyo[1]))
