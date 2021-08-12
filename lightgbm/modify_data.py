@@ -11,8 +11,9 @@ def category_columns(df):
     for column in df.columns:
         if column in number_column:
             df[column] = df[column].astype(np.int32)
-        if column in ['time_value_1', 'time_value_2', 'time_value_3']:
-            continue
+        elif column in ['time_value_1', 'time_value_2', 'time_value_3']:
+            df[column] = df[column].fillna(-1)
+            df[column] = df[column].astype(np.int32)
         else:
             df[column] = df[column].astype('category')
     return df

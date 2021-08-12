@@ -83,6 +83,7 @@ if __name__ == '__main__':
     target_data = target_data.apply(lambda x: int(1) if x == '3' else x)
     target_data = target_data.apply(lambda x: int(0) if type(x) == str else x)
     label_value = sorted(list(target_data.unique()))
+    label_value = list(map(str, label_value))
 
     data = data.drop(['goal_time_dif', 'rank', 'time_value'], axis=1)
     # data['half_way_rank'] = data['half_way_rank'].astype(int).astype('category')
