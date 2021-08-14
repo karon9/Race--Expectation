@@ -47,7 +47,7 @@ def half_way_rank_ave(df_horse: pd.DataFrame):
         df_tm_horse_2 = df_tm_horse_['half_way_rank'].shift(2).rename('half_way_rank_2')
         df_tm_horse_3 = df_tm_horse_['half_way_rank'].shift(3).rename('half_way_rank_3')
         df_tm_horse_half_way = pd.concat([df_tm_horse_1, df_tm_horse_2, df_tm_horse_3], axis=1)
-        df_tm_horse_half_way = df_tm_horse_half_way.mean(axis=1)
+        df_tm_horse_half_way = df_tm_horse_half_way.mean(axis=1).rename('half_way_rank_ave')
         df_tm_horse = pd.concat([df_tm_horse_, df_tm_horse_half_way], axis=1)
         if firstLoop:
             df_tm = df_tm_horse
